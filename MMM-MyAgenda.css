@@ -1,0 +1,118 @@
+/* === MMM-MyAgenda.css === */
+/* Matches MMM-AmbientWeather liquid glass theme */
+
+.MMM-MyAgenda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #e3e7ec;
+  font-family: "SF Pro Display", "Roboto", sans-serif;
+  margin: 10px;
+  transition: opacity 0.6s ease, filter 0.6s ease;
+}
+
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(180%);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 18px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35),
+              inset 0 0 8px rgba(255, 255, 255, 0.05);
+  min-width: 260px;
+  max-width: 380px;
+  transition: all 0.6s ease;
+}
+
+.raised-edge {
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  border-right: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.03) 40%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  opacity: 0.35;
+  transform: rotate(25deg);
+  animation: shimmer 14s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-60%) rotate(25deg); }
+  100% { transform: translateX(60%) rotate(25deg); }
+}
+
+/* Agenda content */
+.myag-header {
+  font-size: 1.3em;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+  color: #ffffffd9;
+}
+
+.myag-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.myag-empty {
+  text-align: center;
+  opacity: 0.6;
+  font-size: 0.9em;
+  padding: 6px;
+}
+
+.myag-event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-left: 4px solid #007aff;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.05);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.myag-event:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.myag-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.myag-icon {
+  font-size: 1.1em;
+}
+
+.myag-title {
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.myag-right {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
