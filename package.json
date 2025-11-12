@@ -1,0 +1,12 @@
+{
+  "name": "MMM-MyAgenda",
+  "version": "1.1.0",
+  "description": "MagicMirror module for displaying an iOS-style liquid-glass agenda with robust ICS parsing via ical.",
+  "main": "MMM-MyAgenda.js",
+  "author": "Harry Arter & ChatGPT (GPT-5)",
+  "license": "MIT",
+  "dependencies": {
+    "ical": "^0.8.0",
+    "node-fetch": "^3.3.2"
+  }
+}
