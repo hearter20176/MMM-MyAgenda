@@ -1,11 +1,10 @@
 /* === MMM-MyAgenda.css === */
-/* Matches MMM-AmbientWeather liquid glass theme */
+/* Matches MMM-AmbientWeather frosted-glass theme */
 
 .MMM-MyAgenda {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   color: #e3e7ec;
   font-family: "SF Pro Display", "Roboto", sans-serif;
   margin: 10px;
@@ -24,7 +23,6 @@
               inset 0 0 8px rgba(255, 255, 255, 0.05);
   min-width: 260px;
   max-width: 380px;
-  transition: all 0.6s ease;
 }
 
 .raised-edge {
@@ -34,6 +32,7 @@
   border-right: 1px solid rgba(0, 0, 0, 0.4);
 }
 
+/* Shimmer effect */
 .glass-card::before {
   content: "";
   position: absolute;
@@ -57,33 +56,43 @@
   100% { transform: translateX(60%) rotate(25deg); }
 }
 
-/* Agenda content */
+/* --- Agenda Layout --- */
 .myag-header {
   font-size: 1.3em;
   font-weight: 600;
   text-align: center;
   margin-bottom: 10px;
-  letter-spacing: 0.02em;
   color: #ffffffd9;
 }
 
 .myag-agenda {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
-.myag-empty {
+.myag-day-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.myag-date-header {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #f0f3f7;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  margin-bottom: 4px;
   text-align: center;
-  opacity: 0.6;
-  font-size: 0.9em;
-  padding: 6px;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
 }
 
 .myag-event {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 8px 10px;
   border-left: 4px solid #007aff;
   border-radius: 14px;
@@ -99,20 +108,52 @@
 
 .myag-left {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .myag-icon {
-  font-size: 1.1em;
+  font-size: 1.2em;
+  margin-top: 2px;
+}
+
+.myag-textwrap {
+  display: flex;
+  flex-direction: column;
 }
 
 .myag-title {
   font-weight: 600;
   font-size: 0.95em;
+  line-height: 1.1;
+}
+
+.myag-desc {
+  font-size: 0.8em;
+  color: #bfc6ce;
+  opacity: 0.8;
+  margin-top: 2px;
+  line-height: 1.2;
 }
 
 .myag-right {
   font-size: 0.85em;
   opacity: 0.8;
+  padding-top: 4px;
+}
+
+.myag-empty {
+  text-align: center;
+  opacity: 0.6;
+  font-size: 0.9em;
+  padding: 6px;
+}
+
+.myag-desc {
+  font-size: 0.8em;
+  color: #bfc6ce;
+  opacity: 0.75;
+  margin-top: 2px;
+  line-height: 1.2;
+  font-style: italic;
 }
