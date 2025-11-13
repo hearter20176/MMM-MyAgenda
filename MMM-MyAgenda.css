@@ -157,3 +157,14 @@
   line-height: 1.2;
   font-style: italic;
 }
+
+.event-icon {
+  margin-right: 8px;
+  font-size: 1em;
+  vertical-align: middle;
+}
+
+.event-title {
+  display: inline-block;
+  vertical-align: middle;
+}
