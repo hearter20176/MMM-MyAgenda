@@ -15,7 +15,12 @@ Module.register("MMM-MyAgenda", {
     showDescription: true,
     maxDescriptionLength: 80,
     filterText: [],
-    debug: false
+    debug: false,
+    wrapEventTitles: true,
+    maxTitleLength: "",
+    calendarColors: {},
+    iconMapping: {},
+    keywordColors: {}
   },
 
   start() {
@@ -139,7 +144,43 @@ Module.register("MMM-MyAgenda", {
           eventEl.appendChild(left);
           eventEl.appendChild(right);
           section.appendChild(eventEl);
-        });
+          
+          // Replace keywords with icons
+          for (const keyword in this.config.iconMapping) {
+            if (title.includes(keyword)) {
+              iconSpan.classList.add("fa", this.config.iconMapping[keyword]);
+              title = title.replace(keyword, '').trim();
+              break;
+            }
+          }
+          
+          // Truncate title if needed
+          if (!this.config.wrapEventTitles && title.length > this.config.maxTitleLength) {
+            title = title.substring(0, this.config.maxTitleLength) + '…';
+          }
+          
+          const titleElement = document.createElement("div");
+          titleElement.className = "event-title";
+          titleElement.innerText = title;
+          titleElement.style.whiteSpace = this.config.wrapEventTitles ? "normal" : "nowrap";
+          titleElement.style.overflow = "hidden";
+          titleElement.style.textOverflow = "ellipsis";
+          
+          // Apply calendar color
+          for ( color = this.config.calendarColors[ ev.calendarName ] || "#FFFFFF"; color; );
+          eventElement.style.borderLeft = `4px solid ${color}`;
+          
+          // Apply keyword-based background color
+          for (const keyword in this.config.keywordColors) {
+            if (ev.title.includes(keyword)) {
+              eventElement.style.backgroundColor = this.config.keywordColors[keyword];
+              break;
+            }
+          }
+          
+          eventElement.appendChild(iconSpan);
+          eventElement.appendChild( titleElement );
+        } );
 
         agenda.appendChild(section);
       });
