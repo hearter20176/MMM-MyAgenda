@@ -56,7 +56,21 @@ npm install
   position: "top_right",
   header: "Agenda",
   config: {
-    useCalendarModule: false,        // false = fetch from .ics URLs, true = use CALENDAR_EVENTS
+    wrapEventTitles: true,
+maxTitleLength: 50,
+calendarColors: {
+  "Work": "#FF5733",
+  "Personal": "#33C1FF"
+},
+iconMapping: {
+  "Meeting": "fa-handshake",
+  "Birthday": "fa-birthday-cake"
+},
+keywordColors: {
+  "Urgent": "#FF0000",
+  "Optional": "#AAAAAA"
+}
+useCalendarModule: false,        // false = fetch from .ics URLs, true = use CALENDAR_EVENTS
     calendars: [
       {
         name: "Personal",
