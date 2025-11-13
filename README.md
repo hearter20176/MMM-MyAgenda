@@ -2,6 +2,13 @@
 
 Standalone MagicMirror module that renders a multi-day agenda with an **iOS liquid glass** theme, color-coded calendars and custom icons. It supports direct `.ics` parsing via `ical`, smart event grouping, contextual icons, and an elegant frosted-glass UI consistent with **MMM-AmbientWeather**.  
 
+### Day
+
+![MMM-MyAgenda Light Theme](docs/myagenda_day.png)
+
+### Night
+
+![MMM-MyAgenda Dark Theme](docs/myagenda_night.png)
 ---
 
 ## ✨ Features
