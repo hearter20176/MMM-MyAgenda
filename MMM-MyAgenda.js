@@ -1,4 +1,6 @@
-/* global Module, Log */
+/* MagicMirror² Module: MMM-MyAgenda
+ * Frosted iOS glass agenda with color-coded icons and full-day detection
+ */
 
 Module.register("MMM-MyAgenda", {
   defaults: {
@@ -12,36 +14,21 @@ Module.register("MMM-MyAgenda", {
     maxTitleLength: 0,
     showDescription: true,
     maxDescriptionLength: 80,
-    filterText: [] // array of strings to strip from titles
+    filterText: [],
+    debug: false
   },
 
-  eventPool: null,
-  activeConfig: null,
-  _ready: false,
-  domObj: null,
-
   start() {
-    Log.info(`[${this.name}] starting module`);
     this.eventPool = new Map();
     this.activeConfig = { ...this.defaults, ...this.config };
-
     if (!this.activeConfig.useCalendarModule && this.activeConfig.calendars.length) {
       this.sendSocketNotification("MYAG_I_C_FETCH", this.activeConfig);
     }
-
-    setTimeout(() => {
-      if (this.isDisplayed()) this.updateDom(this.activeConfig.animationSpeed);
-    }, this.activeConfig.waitFetch);
-  },
-
-  isDisplayed() {
-    return !this.hidden && this.data && this.data.position && this._ready;
+    setTimeout(() => this.updateDom(this.activeConfig.animationSpeed), this.activeConfig.waitFetch);
   },
 
   getDom() {
-    this._ready = true;
     const cfg = this.activeConfig;
-
     const wrapper = document.createElement("div");
     wrapper.className = "MMM-MyAgenda";
 
@@ -57,30 +44,41 @@ Module.register("MMM-MyAgenda", {
     agenda.className = "myag-agenda";
 
     const grouped = this.groupEventsByDay(this.getAllEvents());
-    const dayKeys = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+    const days = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
 
-    if (!dayKeys.length) {
+    if (!days.length) {
       const empty = document.createElement("div");
       empty.className = "myag-empty";
       empty.innerText = "No upcoming events";
       agenda.appendChild(empty);
     } else {
-      dayKeys.forEach((day) => {
-        const daySection = document.createElement("div");
-        daySection.className = "myag-day-section";
+      days.forEach((dayKey) => {
+        const section = document.createElement("div");
+        section.className = "myag-day-section";
 
+        const [y, m, d] = dayKey.split("-").map((v) => Number(v));
+        const dateObj = new Date(y, m - 1, d);
         const dateHeader = document.createElement("div");
         dateHeader.className = "myag-date-header";
-        const dateObj = new Date(day);
         dateHeader.innerText = dateObj.toLocaleDateString([], {
           weekday: "short",
           month: "short",
           day: "numeric"
         });
-        daySection.appendChild(dateHeader);
+        section.appendChild(dateHeader);
 
-        grouped[day].forEach((ev) => {
-          const { icon, color } = this.getIconAndColor(ev.title);
+        grouped[dayKey].forEach((ev) => {
+          let title = ev.title || "";
+          (cfg.filterText || []).forEach((pattern) => {
+            const regex = new RegExp(pattern, "ig");
+            title = title.replace(regex, "");
+          });
+          title = title.trim();
+          if (cfg.maxTitleLength > 0 && title.length > cfg.maxTitleLength)
+            title = title.slice(0, cfg.maxTitleLength - 1) + "…";
+
+          const { icon, color } = this.getIconAndColor(title);
+
           const eventEl = document.createElement("div");
           eventEl.className = "myag-event";
           eventEl.style.borderLeftColor = color;
@@ -97,28 +95,15 @@ Module.register("MMM-MyAgenda", {
           const textWrap = document.createElement("div");
           textWrap.className = "myag-textwrap";
 
-          // --- title cleanup ---
-          let titleText = ev.title || "";
-          cfg.filterText.forEach((pattern) => {
-            const regex = new RegExp(pattern, "ig");
-            titleText = titleText.replace(regex, "");
-          });
-          titleText = titleText.trim();
-
-          if (cfg.maxTitleLength > 0 && titleText.length > cfg.maxTitleLength) {
-            titleText = titleText.slice(0, cfg.maxTitleLength - 1) + "…";
-          }
-
-          const title = document.createElement("span");
-          title.className = "myag-title";
-          title.textContent = titleText;
-          textWrap.appendChild(title);
+          const titleEl = document.createElement("span");
+          titleEl.className = "myag-title";
+          titleEl.textContent = title;
+          textWrap.appendChild(titleEl);
 
           if (cfg.showDescription && ev.description) {
             let desc = ev.description.trim();
-            if (cfg.maxDescriptionLength > 0 && desc.length > cfg.maxDescriptionLength) {
+            if (cfg.maxDescriptionLength > 0 && desc.length > cfg.maxDescriptionLength)
               desc = desc.slice(0, cfg.maxDescriptionLength - 1) + "…";
-            }
             const descEl = document.createElement("div");
             descEl.className = "myag-desc";
             descEl.textContent = desc;
@@ -129,45 +114,40 @@ Module.register("MMM-MyAgenda", {
 
           const right = document.createElement("div");
           right.className = "myag-right";
-          const time = document.createElement("span");
+          const timeSpan = document.createElement("span");
 
-          // --- Smart time rendering ---
-          if (!this.isFullDayEvent(ev)) {
-            const start = new Date(Number(ev.startDate));
-            const end = new Date(Number(ev.endDate));
-            const startStr = this.formatTime(start);
-            const endStr = this.formatTime(end);
-            time.textContent = startStr && endStr ? `${startStr}–${endStr}` : startStr;
+          if (!ev.isFullday) {
+            const s = Number(ev.startDate);
+            const e = Number(ev.endDate);
+            const startDate = new Date(s);
+            const endDate = new Date(e);
+            const durationHrs = (endDate - startDate) / 3600000;
+          
+            // Treat any event longer than 23 hours as full-day visually
+            if (durationHrs >= 23) {
+              timeSpan.textContent = ""; // hide times
+            } else {
+              const startStr = this.formatTime(startDate);
+              const endStr = this.formatTime(endDate);
+              timeSpan.textContent = startStr && endStr ? `${startStr}–${endStr}` : startStr;
+            }
           } else {
-            time.textContent = "";
+            timeSpan.textContent = ""; // full-day = no time
           }
-
-          right.appendChild(time);
+          
+          right.appendChild(timeSpan);
           eventEl.appendChild(left);
           eventEl.appendChild(right);
-          daySection.appendChild(eventEl);
+          section.appendChild(eventEl);
         });
 
-        agenda.appendChild(daySection);
+        agenda.appendChild(section);
       });
     }
 
     card.appendChild(agenda);
     wrapper.appendChild(card);
-    this.domObj = wrapper;
     return wrapper;
-  },
-
-  // --- Smart full-day detector ---
-  isFullDayEvent(ev) {
-    if (ev.isFullday) return true;
-    const start = new Date(Number(ev.startDate));
-    const end = new Date(Number(ev.endDate));
-    if (isNaN(start) || isNaN(end)) return false;
-    const diff = (end - start) / (1000 * 60 * 60); // in hours
-    const startHour = start.getHours();
-    // near 24h duration and start near midnight (handles TZ shifts)
-    return diff >= 23.8 && diff <= 24.2 && startHour <= 5;
   },
 
   formatTime(date) {
@@ -176,12 +156,11 @@ Module.register("MMM-MyAgenda", {
 
   groupEventsByDay(events) {
     const grouped = {};
-    events.forEach((e) => {
-      const date = new Date(Number(e.startDate));
-      if (isNaN(date)) return;
-      const key = date.toISOString().split("T")[0];
+    events.forEach((ev) => {
+      const d = new Date(Number(ev.startDate));
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(e);
+      grouped[key].push(ev);
     });
     return grouped;
   },
@@ -190,7 +169,6 @@ Module.register("MMM-MyAgenda", {
     let all = [];
     for (const [, list] of this.eventPool.entries()) all = all.concat(list);
 
-    // --- Remove duplicates ---
     const seen = new Set();
     all = all.filter((ev) => {
       const key = `${(ev.title || "").toLowerCase()}_${ev.startDate}_${ev.endDate}`;
@@ -208,43 +186,66 @@ Module.register("MMM-MyAgenda", {
     end.setDate(start.getDate() + cfg.numDays);
     end.setHours(23, 59, 59, 999);
 
-    return all
-      .filter((e) => Number(e.startDate) <= end.getTime() && Number(e.endDate) >= start.getTime())
+    return all.filter((e) => e.startDate <= end.getTime() && e.endDate >= start.getTime())
       .sort((a, b) => a.startDate - b.startDate);
   },
 
   getIconAndColor(title = "") {
-    const lower = title.toLowerCase();
-    if (lower.includes("birthday") || lower.includes("anniversary"))
-      return { icon: "🎂", color: "#f472b6" };
-    if (lower.includes("meeting") || lower.includes("call") || lower.includes("zoom"))
-      return { icon: "📞", color: "#3b82f6" };
-    if (lower.includes("doctor") || lower.includes("dentist"))
-      return { icon: "🏥", color: "#60a5fa" };
-    if (lower.includes("math") || lower.includes("exam") || lower.includes("test"))
-      return { icon: "🧮", color: "#a78bfa" };
-    if (lower.includes("soccer") || lower.includes("game") || lower.includes("sport"))
-      return { icon: "⚽", color: "#22c55e" };
-    if (lower.includes("travel") || lower.includes("flight"))
-      return { icon: "✈️", color: "#f59e0b" };
+    const t = title.toLowerCase();
+    if (t.includes("birthday") || t.includes("anniversary")) return { icon: "🎂", color: "#f472b6" };
+    if (t.includes("meeting") || t.includes("call") || t.includes("zoom")) return { icon: "📞", color: "#3b82f6" };
+    if (t.includes("doctor") || t.includes("dentist")) return { icon: "🏥", color: "#60a5fa" };
+    if (t.includes("math") || t.includes("exam") || t.includes("test")) return { icon: "🧮", color: "#a78bfa" };
+    if (t.includes("soccer") || t.includes("game") || t.includes("sport")) return { icon: "⚽", color: "#22c55e" };
+    if (t.includes("travel") || t.includes("flight")) return { icon: "✈️", color: "#f59e0b" };
     return { icon: "🗓️", color: "#9ca3af" };
   },
 
   socketNotificationReceived(notification, payload) {
     if (notification === "MYAG_ICS_EVENTS") {
-      if (!payload || !payload.sourceName) return;
-      this.eventPool.set(payload.sourceName, JSON.parse(JSON.stringify(payload.events)));
-      if (this.isDisplayed()) this.updateDom(this.activeConfig.animationSpeed);
+      if (!payload?.sourceName) return;
+      const events = (payload.events || []).map((ev) => ({
+        title: ev.title || "",
+        description: ev.description || "",
+        startDate: Number(ev.startDate),
+        endDate: Number(ev.endDate),
+        isFullday: !!ev.isFullday,
+        calendar: ev.calendar || payload.sourceName
+      }));
+      this.eventPool.set(payload.sourceName, events);
+      this.updateDom(this.activeConfig.animationSpeed);
     }
     if (notification === "MYAG_ICS_ERROR") {
-      Log.error(`[${this.name}] ${payload.sourceName} fetch error: ${payload.error}`);
+      console.error(`[${this.name}] ${payload.sourceName}: ${payload.error}`);
     }
   },
 
   notificationReceived(notification, payload) {
     if (notification === "CALENDAR_EVENTS" && this.activeConfig.useCalendarModule) {
-      this.eventPool.set("core", payload);
-      if (this.isDisplayed()) this.updateDom(this.activeConfig.animationSpeed);
+      const normalized = Array.isArray(payload?.events)
+        ? payload.events.map((ev) => {
+            const startMs = Number(
+              ev.startDate ??
+              (ev.start && ev.start.getTime ? ev.start.getTime() : null) ??
+              (ev.start || 0)
+            );
+            const endMs = Number(
+              ev.endDate ??
+              (ev.end && ev.end.getTime ? ev.end.getTime() : null) ??
+              (ev.end || 0)
+            );
+            return {
+              title: ev.title || ev.summary || "",
+              description: ev.description || ev.extendedProps?.description || "",
+              startDate: isNaN(startMs) ? 0 : startMs,
+              endDate: isNaN(endMs) ? 0 : endMs,
+              isFullday: !!(ev.isFullday || ev.fullDay || ev.allDay),
+              calendar: ev.calendar || ev.calendarName || payload?.calendar || "calendar"
+            };
+          })
+        : [];
+      this.eventPool.set("core", normalized);
+      this.updateDom(this.activeConfig.animationSpeed);
     }
   },
 
