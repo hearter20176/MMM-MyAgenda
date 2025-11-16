@@ -1,170 +1,151 @@
-/* === MMM-MyAgenda.css === */
-/* Matches MMM-AmbientWeather frosted-glass theme */
+/* ============================================
+   MMM-MyAgenda — Liquid Glass iOS Theme
+   ============================================ */
 
 .MMM-MyAgenda {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #e3e7ec;
+  color: #e9edf3;
   font-family: "SF Pro Display", "Roboto", sans-serif;
-  margin: 10px;
-  transition: opacity 0.6s ease, filter 0.6s ease;
 }
 
+/* ===== Liquid Glass Card ===== */
 .glass-card {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(14px) saturate(180%);
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  padding: 18px 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35),
-              inset 0 0 8px rgba(255, 255, 255, 0.05);
-  min-width: 260px;
-  max-width: 380px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 20px 22px;
+  max-width: 420px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.30);
 }
 
 .raised-edge {
   border-top: 1px solid rgba(255, 255, 255, 0.4);
   border-left: 1px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
-  border-right: 1px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(0,0,0,0.4);
+  border-right: 1px solid rgba(0,0,0,0.4);
 }
 
-/* Shimmer effect */
 .glass-card::before {
   content: "";
   position: absolute;
-  top: -50%;
-  left: -50%;
+  top: -60%;
+  left: -60%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0.15) 0%,
-    rgba(255, 255, 255, 0.03) 40%,
-    rgba(255, 255, 255, 0.15) 100%
+  background: linear-gradient(120deg,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.06) 40%,
+    rgba(255,255,255,0.22) 100%
   );
-  opacity: 0.35;
-  transform: rotate(25deg);
-  animation: shimmer 14s linear infinite;
+  opacity: 0.28;
+  transform: rotate(22deg);
+  animation: shimmer 15s linear infinite;
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-60%) rotate(25deg); }
-  100% { transform: translateX(60%) rotate(25deg); }
+  0% { transform: translateX(-55%) rotate(22deg); }
+  100% { transform: translateX(55%) rotate(22deg); }
 }
 
-/* --- Agenda Layout --- */
+/* ===== Header ===== */
 .myag-header {
-  font-size: 1.3em;
-  font-weight: 600;
   text-align: center;
-  margin-bottom: 10px;
-  color: #ffffffd9;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: #f5f7fb;
 }
 
-.myag-agenda {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
+/* ===== Date Group ===== */
 .myag-day-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .myag-date-header {
-  font-size: 1.1em;
-  font-weight: 600;
-  color: #f0f3f7;
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
-  margin-bottom: 4px;
-  text-align: center;
-  text-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  padding-left: 6px;
+  opacity: 0.85;
 }
 
+/* ===== Event Row ===== */
 .myag-event {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 8px 10px;
-  border-left: 4px solid #007aff;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.05);
-  transition: transform 0.25s ease, background 0.25s ease;
+  padding: 10px 10px;
+  margin: 6px 0;
+  border-left: 4px solid #9ca3af;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(6px);
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .myag-event:hover {
-  background: rgba(255, 255, 255, 0.18);
-  transform: translateY(-2px);
+  background: rgba(255,255,255,0.10);
+  transform: translateX(2px);
 }
 
+/* ===== Left Column (Icon + Text) ===== */
 .myag-left {
   display: flex;
-  align-items: flex-start;
+  flex-direction: row;
   gap: 8px;
+  flex: 1;
 }
 
+/* Icon */
 .myag-icon {
-  font-size: 1.2em;
+  font-size: 20px;
+  min-width: 22px;
   margin-top: 2px;
 }
 
+/* Text wrapper */
 .myag-textwrap {
   display: flex;
   flex-direction: column;
+  align-items: flex-start !important;
+  text-align: left !important;
 }
 
+/* Title */
 .myag-title {
-  font-weight: 400;
-  font-size: 0.75em;
-  line-height: 1.1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #f7f9fc;
+  text-align: left !important;
+  margin-bottom: 2px;
 }
 
+/* Description */
 .myag-desc {
-  font-size: 0.8em;
-  color: #bfc6ce;
-  opacity: 0.8;
-  margin-top: 2px;
-  line-height: 1.2;
-}
-
-.myag-right {
-  font-size: 0.85em;
-  opacity: 0.8;
-  padding-top: 4px;
-}
-
-.myag-empty {
-  text-align: center;
-  opacity: 0.6;
-  font-size: 0.9em;
-  padding: 6px;
-}
-
-.myag-desc {
-  font-size: 0.8em;
-  color: #bfc6ce;
-  opacity: 0.75;
-  margin-top: 2px;
-  line-height: 1.2;
+  font-size: 13px;
+  color: #d0d8e4;
+  opacity: 0.85;
   font-style: italic;
 }
 
-.event-icon {
-  margin-right: 8px;
-  font-size: 1em;
-  vertical-align: middle;
+/* ===== Time Right Side ===== */
+.myag-right {
+  font-size: 13px;
+  color: #dde4ee;
+  white-space: nowrap;
+  opacity: 0.9;
 }
 
-.event-title {
-  display: inline-block;
-  vertical-align: middle;
+/* ===== Empty ===== */
+.myag-empty {
+  text-align: center;
+  font-size: 15px;
+  color: #d0d5df;
+  padding: 18px 0;
+  opacity: 0.8;
 }
