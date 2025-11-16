@@ -1,0 +1,170 @@
+/* === MMM-MyAgenda.css === */
+/* Matches MMM-AmbientWeather frosted-glass theme */
+
+.MMM-MyAgenda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #e3e7ec;
+  font-family: "SF Pro Display", "Roboto", sans-serif;
+  margin: 10px;
+  transition: opacity 0.6s ease, filter 0.6s ease;
+}
+
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(180%);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 18px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35),
+              inset 0 0 8px rgba(255, 255, 255, 0.05);
+  min-width: 260px;
+  max-width: 380px;
+}
+
+.raised-edge {
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  border-right: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+/* Shimmer effect */
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.03) 40%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  opacity: 0.35;
+  transform: rotate(25deg);
+  animation: shimmer 14s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-60%) rotate(25deg); }
+  100% { transform: translateX(60%) rotate(25deg); }
+}
+
+/* --- Agenda Layout --- */
+.myag-header {
+  font-size: 1.3em;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #ffffffd9;
+}
+
+.myag-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.myag-day-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.myag-date-header {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #f0f3f7;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  margin-bottom: 4px;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
+}
+
+.myag-event {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-left: 4px solid #007aff;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.05);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.myag-event:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.myag-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.myag-icon {
+  font-size: 1.2em;
+  margin-top: 2px;
+}
+
+.myag-textwrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.myag-title {
+  font-weight: 400;
+  font-size: 0.75em;
+  line-height: 1.1;
+}
+
+.myag-desc {
+  font-size: 0.8em;
+  color: #bfc6ce;
+  opacity: 0.8;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.myag-right {
+  font-size: 0.85em;
+  opacity: 0.8;
+  padding-top: 4px;
+}
+
+.myag-empty {
+  text-align: center;
+  opacity: 0.6;
+  font-size: 0.9em;
+  padding: 6px;
+}
+
+.myag-desc {
+  font-size: 0.8em;
+  color: #bfc6ce;
+  opacity: 0.75;
+  margin-top: 2px;
+  line-height: 1.2;
+  font-style: italic;
+}
+
+.event-icon {
+  margin-right: 8px;
+  font-size: 1em;
+  vertical-align: middle;
+}
+
+.event-title {
+  display: inline-block;
+  vertical-align: middle;
+}
