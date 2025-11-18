@@ -1,8 +1,4 @@
-/* MMM-MyAgenda.js
- *
- * Fully corrected module (icons via classes + emoji, keywordColors, filterText,
- * dedupe, full-day detection, local-day grouping, description + truncation)
- */
+/* MMM-MyAgenda.js — Full merged and corrected version */
 
 Module.register("MMM-MyAgenda", {
   defaults: {
@@ -15,19 +11,19 @@ Module.register("MMM-MyAgenda", {
     numDays: 5,
 
     // appearance
-    maxTitleLength: 0, // 0 = unlimited
+    maxTitleLength: 0,
     wrapEventTitles: true,
     showDescription: false,
     maxDescriptionLength: 80,
 
-    // filtering (these fragments are removed from the displayed title)
+    // filtering
     filterText: [],
 
-    // mappings: examples in your config
+    // mapping + colors
     keywordColors: {},
     calendarColors: {},
-    iconMapping: {}, // class-based mappings like "Life Science": "fas fa-dna"
-    iconEmojis: {}, // emoji fallbacks like "birthday": "🎂"
+    iconMapping: {},
+    iconEmojis: {},
 
     // dedupe
     removeDuplicates: true,
@@ -36,14 +32,14 @@ Module.register("MMM-MyAgenda", {
     debug: false
   },
 
-  // instance state
+  // state
   eventPool: null,
   _ready: false,
 
   start() {
     Log.info(`[${this.name}] Starting`);
     this.eventPool = new Map();
-    // If not using core calendar, request helper fetch
+
     if (
       !this.config.useCalendarModule &&
       Array.isArray(this.config.calendars) &&
@@ -51,7 +47,7 @@ Module.register("MMM-MyAgenda", {
     ) {
       this.sendSocketNotification("MYAG_I_C_FETCH", this.config);
     }
-    // initial update after a short wait
+
     setTimeout(() => {
       if (!this._ready) return;
       this.updateDom(0);
@@ -61,16 +57,15 @@ Module.register("MMM-MyAgenda", {
   getStyles() {
     return [
       this.file("MMM-MyAgenda.css"),
-      // load icon packs used by config (CDN versions)
-      "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
-      "https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css",
-      "https://cdn.jsdelivr.net/npm/iconoir@1.0.4/css/iconoir.min.css"
+      this.file("node_modules/fontawesome-free/css/all.min.css"),
+      this.file("node_modules/boxicons/css/boxicons.min.css"),
+      this.file("node_modules/iconoir/css/iconoir.css")
     ];
   },
 
-  /*********************
-   * Helper utilities
-   *********************/
+  /***************************************************************
+   * Utility helpers
+   ***************************************************************/
   _escapeRegExp(s) {
     return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   },
@@ -83,59 +78,52 @@ Module.register("MMM-MyAgenda", {
     });
   },
 
-  // heuristic fallback if helper didn't mark isFullday
   _heuristicFullDay(ev) {
     const s = Number(ev.startDate);
     const e = Number(ev.endDate);
     if (!s || !e) return false;
     const start = new Date(s);
     const end = new Date(e);
+
+    if (s === e) return true; // identical times → treat as full-day
+
     const diffH = (end - start) / 3600000;
-    // identical start/end (e.g., 08:00-08:00) => treat as full-day
-    if (s === e) return true;
-    // near-24h and start close to midnight => full-day
     if (diffH >= 23.5 && diffH <= 24.5 && start.getHours() <= 5) return true;
+
     return false;
   },
 
-  // Return icon info. If iconMapping matched a class, return iconType: "class" + iconClass.
-  // If emoji mapping matched, return iconType: "emoji" + icon.
-  // color may be provided by keywordColors
   getIconAndColor(originalTitle) {
     const titleLower = (originalTitle || "").toLowerCase();
     const cfg = this.config;
 
-    // 1) iconMapping (class-based) check using original title
-    if (cfg.iconMapping && typeof cfg.iconMapping === "object") {
+    // 1. iconMapping (class-based)
+    if (cfg.iconMapping) {
       for (const key in cfg.iconMapping) {
-        if (!key) continue;
         if (titleLower.includes(key.toLowerCase())) {
-          const cls = cfg.iconMapping[key];
-          const color =
-            cfg.keywordColors && cfg.keywordColors[key]
-              ? cfg.keywordColors[key]
-              : null;
-          return { iconType: "class", iconClass: cls, color };
+          return {
+            iconType: "class",
+            iconClass: cfg.iconMapping[key],
+            color: cfg.keywordColors?.[key] || null
+          };
         }
       }
     }
 
-    // 2) iconEmojis mapping
-    if (cfg.iconEmojis && typeof cfg.iconEmojis === "object") {
+    // 2. emoji mapping
+    if (cfg.iconEmojis) {
       for (const key in cfg.iconEmojis) {
-        if (!key) continue;
         if (titleLower.includes(key.toLowerCase())) {
-          const emoji = cfg.iconEmojis[key];
-          const color =
-            cfg.keywordColors && cfg.keywordColors[key]
-              ? cfg.keywordColors[key]
-              : null;
-          return { iconType: "emoji", icon: emoji, color };
+          return {
+            iconType: "emoji",
+            icon: cfg.iconEmojis[key],
+            color: cfg.keywordColors?.[key] || null
+          };
         }
       }
     }
 
-    // 3) default fallback
+    // default fallback
     return { iconType: "emoji", icon: "🗓️", color: "#9ca3af" };
   },
 
@@ -143,13 +131,11 @@ Module.register("MMM-MyAgenda", {
     if (!hexOrRgba) return "";
     const s = String(hexOrRgba).trim();
     if (s.startsWith("rgba")) {
-      // replace alpha if present
       return s.replace(/rgba\(([^)]+)\)/, (m, inside) => {
         const parts = inside.split(",").map((p) => p.trim());
         return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
       });
     }
-    // hex -> rgba
     const hex = s.replace("#", "");
     if (hex.length === 6) {
       const r = parseInt(hex.slice(0, 2), 16);
@@ -160,195 +146,173 @@ Module.register("MMM-MyAgenda", {
     return "";
   },
 
-  /*********************
-   * Event collection & grouping
-   *********************/
+  /***************************************************************
+   * Event Retrieval / Grouping
+   ***************************************************************/
   getAllEvents() {
     let all = [];
-    for (const [, list] of this.eventPool.entries()) {
-      if (Array.isArray(list)) all = all.concat(list);
+    for (const [, arr] of this.eventPool.entries()) {
+      if (Array.isArray(arr)) all = all.concat(arr);
     }
 
-    // dedupe
     if (this.config.removeDuplicates) {
       const seen = new Set();
       all = all.filter((ev) => {
-        const key = `${(ev.title || "").toString().toLowerCase()}_${ev.startDate}_${ev.endDate}`;
+        const key = `${ev.title?.toLowerCase() ?? ""}_${ev.startDate}_${ev.endDate}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
       });
     }
 
-    // filtering by window (local)
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    start.setDate(start.getDate() + Number(this.config.startOffsetDays || 0));
+    start.setDate(start.getDate() + Number(this.config.startOffsetDays));
     start.setHours(0, 0, 0, 0);
+
     const end = new Date(start.getTime());
-    end.setDate(end.getDate() + Number(this.config.numDays || 0));
+    end.setDate(end.getDate() + Number(this.config.numDays));
     end.setHours(23, 59, 59, 999);
 
     const filtered = all.filter((ev) => {
       const s = Number(ev.startDate);
       const e = Number(ev.endDate);
-      if (isNaN(s) || isNaN(e)) return false;
+      if (!s || !e) return false;
       return s <= end.getTime() && e >= start.getTime();
     });
 
-    if (this.config.debug) {
-      Log.log(
-        `[${this.name}] getAllEvents -> count ${filtered.length} window ${start.toISOString()} - ${end.toISOString()}`
-      );
-    }
-
-    // sort by start
     filtered.sort((a, b) => Number(a.startDate) - Number(b.startDate));
     return filtered;
   },
 
   groupEventsByDay(events) {
     const grouped = {};
-    for (const ev of events) {
-      const s = Number(ev.startDate);
-      if (isNaN(s)) continue;
-      const d = new Date(s);
+    events.forEach((ev) => {
+      const d = new Date(ev.startDate);
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
       const day = String(d.getDate()).padStart(2, "0");
-      const key = `${y}-${m}-${day}`; // local date key
+      const key = `${y}-${m}-${day}`;
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(ev);
-    }
+    });
     return grouped;
   },
 
-  /*********************
-   * DOM rendering
-   *********************/
+  /***************************************************************
+   * DOM Rendering
+   ***************************************************************/
   getDom() {
     this._ready = true;
     const cfg = this.config;
-    const wrapper = document.createElement("div");
-    wrapper.className = "MMM-MyAgenda";
+
+    const base = document.createElement("div");
+    base.className = "MMM-MyAgenda";
 
     const card = document.createElement("div");
     card.className = "glass-card raised-edge";
-    wrapper.appendChild(card);
+    base.appendChild(card);
 
     const header = document.createElement("div");
     header.className = "myag-header";
-    header.innerText = cfg.header || "My Agenda";
+    header.innerText = cfg.header;
     card.appendChild(header);
 
-    const agenda = document.createElement("div");
-    agenda.className = "myag-agenda";
-    card.appendChild(agenda);
+    const body = document.createElement("div");
+    body.className = "myag-agenda";
+    card.appendChild(body);
 
     const events = this.getAllEvents();
-    if (cfg.debug) Log.log(`[${this.name}] Rendering ${events.length} events`);
-
     if (!events.length) {
       const empty = document.createElement("div");
       empty.className = "myag-empty";
       empty.innerText = "No upcoming events";
-      agenda.appendChild(empty);
-      return wrapper;
+      body.appendChild(empty);
+      return base;
     }
 
-    // Group by local days
     const grouped = this.groupEventsByDay(events);
-    const dayKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+    const dayKeys = Object.keys(grouped).sort();
 
     dayKeys.forEach((dayKey) => {
+      const [y, m, d] = dayKey.split("-").map(Number);
+      const dayObj = new Date(y, m - 1, d);
+
       const section = document.createElement("div");
       section.className = "myag-day-section";
 
-      // date header from local YYYY-MM-DD
-      const [y, m, d] = dayKey.split("-").map((o) => Number(o));
-      const dateObj = new Date(y, m - 1, d);
-      const dateHeader = document.createElement("div");
-      dateHeader.className = "myag-date-header";
-      dateHeader.innerText = dateObj.toLocaleDateString([], {
+      const dateHdr = document.createElement("div");
+      dateHdr.className = "myag-date-header";
+      dateHdr.innerText = dayObj.toLocaleDateString([], {
         weekday: "short",
         month: "short",
         day: "numeric"
       });
-      section.appendChild(dateHeader);
+      section.appendChild(dateHdr);
 
-      // sort day's events
       const dayEvents = grouped[dayKey].sort(
         (a, b) => Number(a.startDate) - Number(b.startDate)
       );
 
       dayEvents.forEach((ev) => {
-        // original title for keyword/color matching
-        const originalTitle = (ev.title || "").toString();
+        const originalTitle = ev.title || "";
 
-        // build displayed title by removing filterText fragments
+        // remove filterText safely
         let displayedTitle = originalTitle;
         if (Array.isArray(cfg.filterText)) {
           cfg.filterText.forEach((frag) => {
             if (!frag) return;
             try {
-              const rx = new RegExp(this._escapeRegExp(frag), "ig");
+              const esc = this._escapeRegExp(frag);
+              const rx = new RegExp(esc, "gi");
               displayedTitle = displayedTitle.replace(rx, "");
             } catch (err) {
-              // ignore bad pattern
-              if (cfg.debug)
-                Log.warn(`[${this.name}] Bad filterText pattern: ${frag}`);
+              displayedTitle = displayedTitle.split(frag).join("");
             }
           });
         }
         displayedTitle = displayedTitle.trim();
 
-        // truncate if required
-        const maxT = Number(cfg.maxTitleLength || 0);
-        if (maxT > 0 && displayedTitle.length > maxT) {
-          displayedTitle = displayedTitle.slice(0, maxT - 1) + "…";
+        // truncation
+        if (
+          cfg.maxTitleLength > 0 &&
+          displayedTitle.length > cfg.maxTitleLength
+        ) {
+          displayedTitle =
+            displayedTitle.slice(0, cfg.maxTitleLength - 1) + "…";
         }
 
-        // Determine icon & color using ORIGINAL title (so filterText doesn't break matching)
         const iconObj = this.getIconAndColor(originalTitle);
-        // calendar color override
-        const calName =
-          ev.calendar || ev.calendarName || ev.calendarName || ev.calendarName;
-        const calColor =
-          cfg.calendarColors && cfg.calendarColors[calName]
-            ? cfg.calendarColors[calName]
-            : null;
 
-        // keywordColors (highest precedence) - check against originalTitle
-        let keywordColor = null;
-        if (cfg.keywordColors && typeof cfg.keywordColors === "object") {
-          for (const kw in cfg.keywordColors) {
-            if (!kw) continue;
-            if (originalTitle.toLowerCase().includes(kw.toLowerCase())) {
-              keywordColor = cfg.keywordColors[kw];
-              break;
-            }
+        // determine color (keywordColors > calendarColors > icon fallback)
+        let finalColor = iconObj.color || "#9ca3af";
+        const calName = ev.calendar || ev.calendarName;
+        if (calName && cfg.calendarColors?.[calName]) {
+          finalColor = cfg.calendarColors[calName];
+        }
+        for (const kw in cfg.keywordColors) {
+          if (originalTitle.toLowerCase().includes(kw.toLowerCase())) {
+            finalColor = cfg.keywordColors[kw];
+            break;
           }
         }
 
-        const finalColor =
-          keywordColor || calColor || iconObj.color || "#9ca3af";
-
-        // Build DOM elements (single append each)
         const eventEl = document.createElement("div");
         eventEl.className = "myag-event";
         eventEl.style.borderLeft = `4px solid ${finalColor}`;
-        // subtle background tint if keywordColor provided
-        if (keywordColor)
-          eventEl.style.background = this._mixColor(keywordColor, 0.1);
 
-        // left (icon + text)
+        const isFD = ev.isFullday || this._heuristicFullDay(ev);
+        if (!isFD && finalColor && finalColor.startsWith("#")) {
+          eventEl.style.background = this._mixColor(finalColor, 0.1);
+        }
+
         const left = document.createElement("div");
         left.className = "myag-left";
 
         const iconSpan = document.createElement("span");
         iconSpan.className = "myag-icon";
-        // class-based icon
-        if (iconObj.iconType === "class" && iconObj.iconClass) {
+
+        if (iconObj.iconType === "class") {
           const iEl = document.createElement("i");
           iconObj.iconClass
             .split(" ")
@@ -357,109 +321,104 @@ Module.register("MMM-MyAgenda", {
           iEl.style.color = finalColor;
           iconSpan.appendChild(iEl);
         } else {
-          iconSpan.textContent = iconObj.icon || "🗓️";
+          iconSpan.textContent = iconObj.icon;
           iconSpan.style.color = finalColor;
         }
+
         left.appendChild(iconSpan);
 
-        const textWrap = document.createElement("div");
-        textWrap.className = "myag-textwrap";
-        textWrap.style.textAlign = "left";
+        const txtWrap = document.createElement("div");
+        txtWrap.className = "myag-textwrap";
 
         const titleEl = document.createElement("div");
         titleEl.className = "myag-title";
-        titleEl.innerText = displayedTitle || originalTitle || "";
+        titleEl.innerText = displayedTitle;
         titleEl.style.whiteSpace = cfg.wrapEventTitles ? "normal" : "nowrap";
-        titleEl.style.overflow = "hidden";
-        titleEl.style.textOverflow = "ellipsis";
-        titleEl.style.textAlign = "left";
-        textWrap.appendChild(titleEl);
+        txtWrap.appendChild(titleEl);
 
         if (cfg.showDescription && ev.description) {
-          let desc = (ev.description || "").toString().trim();
-          const maxD = Number(cfg.maxDescriptionLength || 0);
-          if (maxD > 0 && desc.length > maxD)
-            desc = desc.slice(0, maxD - 1) + "…";
+          let desc = ev.description;
+          if (
+            cfg.maxDescriptionLength > 0 &&
+            desc.length > cfg.maxDescriptionLength
+          ) {
+            desc = desc.slice(0, cfg.maxDescriptionLength - 1) + "…";
+          }
           const descEl = document.createElement("div");
           descEl.className = "myag-desc";
           descEl.innerText = desc;
-          textWrap.appendChild(descEl);
+          txtWrap.appendChild(descEl);
         }
 
-        left.appendChild(textWrap);
+        left.appendChild(txtWrap);
         eventEl.appendChild(left);
 
-        // right: times (hidden for full-day)
-        const isFullday = !!ev.isFullday || this._heuristicFullDay(ev);
-        if (!isFullday) {
-          const right = document.createElement("div");
-          right.className = "myag-right";
-          const s = Number(ev.startDate);
-          const e = Number(ev.endDate);
-          const startDate = isNaN(s) ? null : new Date(s);
-          const endDate = isNaN(e) ? null : new Date(e);
+        // times (if not full-day)
+        if (!isFD) {
+          const s = new Date(ev.startDate);
+          const e = new Date(ev.endDate);
 
-          // If duration is near-24h treat as full-day visually
-          const durH =
-            startDate && endDate ? (endDate - startDate) / 3600000 : 0;
+          const durH = (e - s) / 3600000;
           if (!(durH >= 23.5 && durH <= 24.5)) {
-            const startStr = startDate ? this.formatTime(startDate) : "";
-            const endStr = endDate ? this.formatTime(endDate) : "";
-            right.innerText =
-              startStr && endStr ? `${startStr}–${endStr}` : startStr;
-            eventEl.appendChild(right);
+            const timeEl = document.createElement("div");
+            timeEl.className = "myag-right";
+            const st = this.formatTime(s);
+            const et = this.formatTime(e);
+            timeEl.innerText = st && et ? `${st}–${et}` : st;
+            eventEl.appendChild(timeEl);
           }
         }
 
         section.appendChild(eventEl);
       });
 
-      agenda.appendChild(section);
+      body.appendChild(section);
     });
 
-    return wrapper;
+    return base;
   },
 
-  /* Normalize & accept socket payloads */
+  /***************************************************************
+   * Socket / module notifications
+   ***************************************************************/
   socketNotificationReceived(notification, payload) {
     if (notification === "MYAG_ICS_EVENTS") {
-      if (!payload || !payload.sourceName) return;
-      // sanitize events
-      const events = Array.isArray(payload.events)
+      if (!payload?.sourceName) return;
+
+      const normalized = Array.isArray(payload.events)
         ? payload.events.map((ev) => ({
             title: ev.title || "",
             description: ev.description || "",
-            startDate: Number(ev.startDate) || 0,
-            endDate: Number(ev.endDate) || 0,
+            startDate: Number(ev.startDate),
+            endDate: Number(ev.endDate),
             isFullday: !!ev.isFullday,
             calendar: ev.calendar || ev.calendarName || payload.sourceName
           }))
         : [];
-      this.eventPool.set(payload.sourceName, events);
-      if (this._ready) this.updateDom(this.config.animationSpeed);
-    } else if (notification === "MYAG_ICS_ERROR") {
-      Log.error(
-        `[${this.name}] ${payload?.sourceName} error: ${payload?.error}`
-      );
+
+      this.eventPool.set(payload.sourceName, normalized);
+      if (this._ready) this.updateDom();
+    }
+
+    if (notification === "MYAG_ICS_ERROR") {
+      Log.error(`[${this.name}] ${payload?.sourceName}: ${payload?.error}`);
     }
   },
 
-  // Accept core calendar module events
   notificationReceived(notification, payload) {
     if (notification === "CALENDAR_EVENTS" && this.config.useCalendarModule) {
-      const normalized = Array.isArray(payload?.events)
+      const norm = Array.isArray(payload?.events)
         ? payload.events.map((ev) => ({
             title: ev.title || ev.summary || "",
             description: ev.description || ev.extendedProps?.description || "",
-            startDate: Number(ev.startDate ?? ev.start?.getTime?.() ?? 0) || 0,
-            endDate: Number(ev.endDate ?? ev.end?.getTime?.() ?? 0) || 0,
+            startDate: Number(ev.startDate ?? ev.start?.getTime?.() ?? 0),
+            endDate: Number(ev.endDate ?? ev.end?.getTime?.() ?? 0),
             isFullday: !!(ev.allDay || ev.fullDay || ev.isFullday),
-            calendar:
-              ev.calendar || ev.calendarName || payload?.calendar || "calendar"
+            calendar: ev.calendar || ev.calendarName || "calendar"
           }))
         : [];
-      this.eventPool.set("core", normalized);
-      if (this._ready) this.updateDom(this.config.animationSpeed);
+      this.eventPool.set("core", norm);
+      if (this._ready) this.updateDom();
     }
   }
 });
