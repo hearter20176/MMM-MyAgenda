@@ -2,7 +2,7 @@
 
 Module.register("MMM-MyAgenda", {
   defaults: {
-    header: "My Agenda",
+    header: "Colton Homework",
     useCalendarModule: false,
     calendars: [],
 
