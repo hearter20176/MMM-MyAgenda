@@ -1,151 +1,158 @@
-/* ============================================
-   MMM-MyAgenda — Liquid Glass iOS Theme
-   ============================================ */
+/* ======================================================
+   MMM-MyAgenda.css  — iOS Liquid Glass Agenda Display
+   ====================================================== */
 
 .MMM-MyAgenda {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #e9edf3;
+  color: #e5e8ec;
   font-family: "SF Pro Display", "Roboto", sans-serif;
+  margin: 10px;
 }
 
-/* ===== Liquid Glass Card ===== */
+/* ---------- Liquid Glass Card ---------- */
 .glass-card {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(14px) saturate(180%);
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  padding: 20px 22px;
-  max-width: 420px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.30);
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 22px 26px;
+  box-shadow:
+    0 4px 20px rgba(0,0,0,0.35),
+    inset 0 0 8px rgba(255, 255, 255, 0.05);
+  width: 100%;
+  min-width: 260px;
 }
 
+/* raised beveled edges */
 .raised-edge {
-  border-top: 1px solid rgba(255, 255, 255, 0.4);
-  border-left: 1px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(0,0,0,0.4);
-  border-right: 1px solid rgba(0,0,0,0.4);
+  border-top: 1px solid rgba(255,255,255,0.45);
+  border-left: 1px solid rgba(255,255,255,0.45);
+  border-bottom: 1px solid rgba(0,0,0,0.45);
+  border-right: 1px solid rgba(0,0,0,0.45);
 }
 
+/* shimmering highlight */
 .glass-card::before {
   content: "";
   position: absolute;
   top: -60%;
   left: -60%;
-  width: 200%;
-  height: 200%;
+  width: 220%;
+  height: 220%;
   background: linear-gradient(120deg,
-    rgba(255,255,255,0.22) 0%,
-    rgba(255,255,255,0.06) 40%,
-    rgba(255,255,255,0.22) 100%
-  );
-  opacity: 0.28;
-  transform: rotate(22deg);
-  animation: shimmer 15s linear infinite;
+    rgba(255,255,255,0.16) 0%,
+    rgba(255,255,255,0.03) 45%,
+    rgba(255,255,255,0.16) 100%);
+  opacity: 0.35;
+  transform: rotate(25deg);
+  animation: shimmer 14s linear infinite;
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-55%) rotate(22deg); }
-  100% { transform: translateX(55%) rotate(22deg); }
+  0%   { transform: translateX(-60%) rotate(25deg); }
+  100% { transform: translateX(60%) rotate(25deg); }
 }
 
-/* ===== Header ===== */
+/* ---------- Header ---------- */
 .myag-header {
-  text-align: center;
   font-size: 20px;
   font-weight: 600;
+  text-align: center;
   margin-bottom: 14px;
-  color: #f5f7fb;
+  color: #f8f9fc;
+  text-shadow: 0 0 8px rgba(255,255,255,0.18);
 }
 
-/* ===== Date Group ===== */
+/* ---------- Empty ---------- */
+.myag-empty {
+  font-size: 14px;
+  opacity: 0.75;
+  text-align: center;
+}
+
+/* ---------- Day Sections ---------- */
 .myag-day-section {
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .myag-date-header {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
+  color: #e4e7ec;
   margin-bottom: 8px;
-  padding-left: 6px;
+  padding-left: 4px;
   opacity: 0.85;
 }
 
-/* ===== Event Row ===== */
+/* ---------- Event Row ---------- */
 .myag-event {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 10px 10px;
-  margin: 6px 0;
-  border-left: 4px solid #9ca3af;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(6px);
-  transition: background 0.3s ease, transform 0.2s ease;
+  background: rgba(255,255,255,0.04);
+  padding: 10px 14px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  transition: transform 0.15s ease;
 }
 
 .myag-event:hover {
-  background: rgba(255,255,255,0.10);
-  transform: translateX(2px);
+  transform: scale(1.015);
 }
 
-/* ===== Left Column (Icon + Text) ===== */
 .myag-left {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
 }
 
-/* Icon */
 .myag-icon {
   font-size: 20px;
-  min-width: 22px;
-  margin-top: 2px;
+  display: flex;
+  align-items: center;
 }
 
-/* Text wrapper */
 .myag-textwrap {
   display: flex;
   flex-direction: column;
-  align-items: flex-start !important;
   text-align: left !important;
 }
 
-/* Title */
 .myag-title {
   font-size: 15px;
   font-weight: 500;
-  color: #f7f9fc;
   text-align: left !important;
+  line-height: 1.25;
+  color: #f8f9fa;
   margin-bottom: 2px;
 }
 
-/* Description */
 .myag-desc {
   font-size: 13px;
-  color: #d0d8e4;
   opacity: 0.85;
-  font-style: italic;
+  color: #dbe0e7;
+  margin-top: 3px;
 }
 
-/* ===== Time Right Side ===== */
 .myag-right {
-  font-size: 13px;
-  color: #dde4ee;
+  font-size: 14px;
+  font-weight: 500;
+  color: #cbd3dc;
+  padding-left: 10px;
   white-space: nowrap;
-  opacity: 0.9;
 }
 
-/* ===== Empty ===== */
-.myag-empty {
-  text-align: center;
-  font-size: 15px;
-  color: #d0d5df;
-  padding: 18px 0;
-  opacity: 0.8;
+/* fade-in rows */
+.myag-event {
+  animation: fadeIn 0.45s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
