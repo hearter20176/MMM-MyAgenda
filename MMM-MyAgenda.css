@@ -59,7 +59,7 @@
 
 /* ---------- Header ---------- */
 .myag-header {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   text-align: center;
   margin-bottom: 14px;
@@ -69,18 +69,18 @@
 
 /* ---------- Empty ---------- */
 .myag-empty {
-  font-size: 14px;
+  font-size: 12px;
   opacity: 0.75;
   text-align: center;
 }
 
 /* ---------- Day Sections ---------- */
 .myag-day-section {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .myag-date-header {
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 500;
   color: #e4e7ec;
   margin-bottom: 8px;
@@ -96,7 +96,7 @@
   background: rgba(255,255,255,0.04);
   padding: 10px 14px;
   border-radius: 14px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   transition: transform 0.15s ease;
 }
 
@@ -112,7 +112,7 @@
 }
 
 .myag-icon {
-  font-size: 20px;
+  font-size: 15px;
   display: flex;
   align-items: center;
 }
@@ -124,26 +124,26 @@
 }
 
 .myag-title {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 500;
   text-align: left !important;
-  line-height: 1.25;
+  line-height: 1.1;
   color: #f8f9fa;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .myag-desc {
-  font-size: 13px;
+  font-size: 10px;
   opacity: 0.85;
   color: #dbe0e7;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 .myag-right {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   color: #cbd3dc;
-  padding-left: 10px;
+  padding-left: 8px;
   white-space: nowrap;
 }
 
