@@ -40,6 +40,14 @@ Module.register("MMM-MyAgenda", {
     Log.info(`[${this.name}] Starting`);
     this.eventPool = new Map();
 
+    const waitingForIcs =
+      !this.config.useCalendarModule &&
+      Array.isArray(this.config.calendars) &&
+      this.config.calendars.length > 0;
+    const waitingForCalendarModule = !!this.config.useCalendarModule;
+
+    this.isLoading = waitingForIcs || waitingForCalendarModule;
+
     if (
       !this.config.useCalendarModule &&
       Array.isArray(this.config.calendars) &&
@@ -76,6 +84,20 @@ Module.register("MMM-MyAgenda", {
       hour: "2-digit",
       minute: "2-digit"
     });
+  },
+
+  _getFilterList(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) {
+      return raw.map((s) => String(s)).filter((s) => s.trim().length > 0);
+    }
+    if (typeof raw === "string") {
+      return raw
+        .split(/[|,;]+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+    }
+    return [];
   },
 
   _heuristicFullDay(ev) {
@@ -178,7 +200,8 @@ Module.register("MMM-MyAgenda", {
       const s = Number(ev.startDate);
       const e = Number(ev.endDate);
       if (!s || !e) return false;
-      return s <= end.getTime() && e >= start.getTime();
+      // Only include events that start within the requested window.
+      return s >= start.getTime() && s <= end.getTime();
     });
 
     filtered.sort((a, b) => Number(a.startDate) - Number(b.startDate));
@@ -222,6 +245,22 @@ Module.register("MMM-MyAgenda", {
     body.className = "myag-agenda";
     card.appendChild(body);
 
+    if (this.isLoading) {
+      const loading = document.createElement("div");
+      loading.className = "myag-loading";
+
+      const spinner = document.createElement("span");
+      spinner.className = "myag-spinner";
+      loading.appendChild(spinner);
+
+      const txt = document.createElement("span");
+      txt.innerText = "Loading calendars...";
+      loading.appendChild(txt);
+
+      body.appendChild(loading);
+      return base;
+    }
+
     const events = this.getAllEvents();
     if (!events.length) {
       const empty = document.createElement("div");
@@ -259,18 +298,16 @@ Module.register("MMM-MyAgenda", {
 
         // remove filterText safely
         let displayedTitle = originalTitle;
-        if (Array.isArray(cfg.filterText)) {
-          cfg.filterText.forEach((frag) => {
-            if (!frag) return;
-            try {
-              const esc = this._escapeRegExp(frag);
-              const rx = new RegExp(esc, "gi");
-              displayedTitle = displayedTitle.replace(rx, "");
-            } catch (err) {
-              displayedTitle = displayedTitle.split(frag).join("");
-            }
-          });
-        }
+        const filters = this._getFilterList(cfg.filterText);
+        filters.forEach((frag) => {
+          try {
+            const esc = this._escapeRegExp(frag);
+            const rx = new RegExp(esc, "gi");
+            displayedTitle = displayedTitle.replace(rx, "");
+          } catch (err) {
+            displayedTitle = displayedTitle.split(frag).join("");
+          }
+        });
         displayedTitle = displayedTitle.trim();
 
         // truncation
@@ -384,6 +421,7 @@ Module.register("MMM-MyAgenda", {
   socketNotificationReceived(notification, payload) {
     if (notification === "MYAG_ICS_EVENTS") {
       if (!payload?.sourceName) return;
+      this.isLoading = false;
 
       const normalized = Array.isArray(payload.events)
         ? payload.events.map((ev) => ({
@@ -402,11 +440,14 @@ Module.register("MMM-MyAgenda", {
 
     if (notification === "MYAG_ICS_ERROR") {
       Log.error(`[${this.name}] ${payload?.sourceName}: ${payload?.error}`);
+      this.isLoading = false;
+      if (this._ready) this.updateDom();
     }
   },
 
   notificationReceived(notification, payload) {
     if (notification === "CALENDAR_EVENTS" && this.config.useCalendarModule) {
+      this.isLoading = false;
       const norm = Array.isArray(payload?.events)
         ? payload.events.map((ev) => ({
             title: ev.title || ev.summary || "",
