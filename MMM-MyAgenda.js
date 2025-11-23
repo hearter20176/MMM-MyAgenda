@@ -37,6 +37,22 @@ Module.register("MMM-MyAgenda", {
   _ready: false,
 
   start() {
+    // Legacy aliases -> prefer modern startOffsetDays/numDays if provided.
+    if (typeof this.config.startDayIndex === "number") {
+      this.config.startOffsetDays = this.config.startDayIndex;
+    }
+    if (typeof this.config.endDayIndex === "number") {
+      // endDayIndex is inclusive; ensure at least 1 day.
+      const start = Number(this.config.startOffsetDays) || 0;
+      const len = Number(this.config.endDayIndex) - start + 1;
+      this.config.numDays = Math.max(len, 1);
+    }
+
+    // Respect the standard MagicMirror header property if provided at module level.
+    if (typeof this.data?.header === "string") {
+      this.config.header = this.data.header;
+    }
+
     Log.info(`[${this.name}] Starting`);
     this.eventPool = new Map();
 
@@ -423,6 +439,12 @@ Module.register("MMM-MyAgenda", {
       if (!payload?.sourceName) return;
       this.isLoading = false;
 
+      if (this.config.debug) {
+        Log.info(
+          `[${this.name}] Received ${Array.isArray(payload.events) ? payload.events.length : 0} events from ${payload.sourceName}`
+        );
+      }
+
       const normalized = Array.isArray(payload.events)
         ? payload.events.map((ev) => ({
             title: ev.title || "",
@@ -448,8 +470,16 @@ Module.register("MMM-MyAgenda", {
   notificationReceived(notification, payload) {
     if (notification === "CALENDAR_EVENTS" && this.config.useCalendarModule) {
       this.isLoading = false;
-      const norm = Array.isArray(payload?.events)
-        ? payload.events.map((ev) => ({
+      // Default calendar broadcasts the array directly (not wrapped in { events }). Support both shapes.
+      const incomingEvents = Array.isArray(payload) ? payload : payload?.events;
+
+      if (this.config.debug) {
+        const count = Array.isArray(incomingEvents) ? incomingEvents.length : 0;
+        Log.info(`[${this.name}] Received ${count} CALENDAR_EVENTS from core calendar`);
+      }
+
+      const norm = Array.isArray(incomingEvents)
+        ? incomingEvents.map((ev) => ({
             title: ev.title || ev.summary || "",
             description: ev.description || ev.extendedProps?.description || "",
             startDate: Number(ev.startDate ?? ev.start?.getTime?.() ?? 0),

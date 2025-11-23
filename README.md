@@ -11,6 +11,12 @@ Standalone MagicMirror module that renders a multi-day agenda with an **iOS liqu
 ![MMM-MyAgenda Dark Theme](docs/myagenda_night.png)
 ---
 
+## Recent Updates
+
+- Supports legacy `startDayIndex`/`endDayIndex` aliases by mapping them to `startOffsetDays`/`numDays`.
+- Accepts CALENDAR_EVENTS whether sent as a raw array or wrapped in `{ events }`.
+- Optional `debug: true` logs counts of events received from ICS sources and CALENDAR_EVENTS.
+
 ## ✨ Features
 
 - 🗓️ Multi-day **agenda list**, grouped by day headers  
