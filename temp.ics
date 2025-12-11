@@ -1,0 +1,806 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:icalendar-ruby
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Harry Arter Calendar (Canvas)
+X-WR-CALDESC:Calendar events for the user\, Harry Arter
+BEGIN:VEVENT
+DTSTAMP:20251115T062900Z
+UID:event-assignment-6288
+DTSTART;VALUE=DATE;VALUE=DATE:20251110
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Week 5 (Nov 10-Nov 14) - Class Participation  [07 Music -Jones]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_733&month=11&year=2025#assignment_6288
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251114T001800Z
+UID:event-assignment-6303
+DTSTART;VALUE=DATE;VALUE=DATE:20251112
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:formative photosynthesis and cell. respiration [07 Life Science-Dur
+ ot]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_736&month=11&year=2025#assignment_6303
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251201T002600Z
+UID:event-assignment-6665
+DTSTART;VALUE=DATE;VALUE=DATE:20251112
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Veterans Day poster presentations in class [07 World History-Harper
+ ]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_735&month=11&year=2025#assignment_6665
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T062400Z
+UID:event-assignment-6233
+DTSTART;VALUE=DATE;VALUE=DATE:20251113
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:HW: 125 (1-13\; 17-27 odds) Mon [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=11&year=2025#assignment_6233
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T062400Z
+UID:event-assignment-5362
+DTSTART;VALUE=DATE;VALUE=DATE:20251113
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:HW: 134 (1-12\, 18-20) Tues [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=11&year=2025#assignment_5362
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T060800Z
+UID:event-assignment-5429
+DTSTART;VALUE=DATE;VALUE=DATE:20251113
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Numbers & School Vocab  Quiz [Spanish 1A-Coomes]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_779&month=11&year=2025#assignment_5429
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251121T194400Z
+UID:event-assignment-5364
+DTSTART;VALUE=DATE;VALUE=DATE:20251113
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Quiz on §3.3\, 3.4 [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=11&year=2025#assignment_5364
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T062600Z
+UID:event-assignment-6352
+DTSTART:20251114T130000Z
+DTEND:20251114T130000Z
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Transformation Bible Verse Hunt [07 English-Oblas]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_756&month=11&year=2025#assignment_6352
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251113T063400Z
+UID:event-assignment-6064
+DTSTART;VALUE=DATE;VALUE=DATE:20251114
+CLASS:PUBLIC
+SEQUENCE:0
+SUMMARY:Week 4 (Nov 3-7) Class Participation  [07 Music -Jones]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_733&month=11&year=2025#assignment_6064
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251118T235300Z
+UID:event-assignment-6496
+DTSTART;VALUE=DATE;VALUE=DATE:20251114
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Cell Respiration reading/questions [07 Life Science-Durot]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_736&month=11&year=2025#assignment_6496
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251121T194400Z
+UID:event-assignment-5379
+DTSTART;VALUE=DATE;VALUE=DATE:20251114
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Class Part. 11/10 wk [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=11&year=2025#assignment_5379
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251122T214500Z
+UID:event-assignment-6495
+DTSTART;VALUE=DATE;VALUE=DATE:20251114
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Reading/Questions Photosynthesis [07 Life Science-Durot]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_736&month=11&year=2025#assignment_6495
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251201T002600Z
+UID:event-assignment-6654
+DTSTART;VALUE=DATE;VALUE=DATE:20251114
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Today in History Nov. 10-14 [07 World History-Harper]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_735&month=11&year=2025#assignment_6654
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251210T061800Z
+UID:event-assignment-3527
+DTSTART;VALUE=DATE;VALUE=DATE:20251114
+CLASS:PUBLIC
+DESCRIPTION:[Weekly Bible Participation.pdf] (https://ccaguardians.instruct
+ ure.com/courses/732/files/56526?wrap=1)
+SEQUENCE:0
+SUMMARY:📝 11/14 - Weekly Participation Journal [07 Bible-Swain]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_732&month=11&year=2025#assignment_3527
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="instructure_file_link instructure
+ _scribd_file auto_open" title="Weekly Bible Participation.pdf" href="https
+ ://ccaguardians.instructure.com/courses/732/files/56526?wrap=1" target="_b
+ lank" data-canvas-previewable="false" data-api-endpoint="https://ccaguardi
+ ans.instructure.com/api/v1/courses/732/files/56526" data-api-returntype="F
+ ile">Weekly Bible Participation.pdf</a></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251122T062800Z
+UID:event-assignment-6572
+DTSTART;VALUE=DATE;VALUE=DATE:20251117
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Week 6 (11/17-11/21) - Class Participation  [07 Music -Jones]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_733&month=11&year=2025#assignment_6572
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251202T060700Z
+UID:event-assignment-6655
+DTSTART;VALUE=DATE;VALUE=DATE:20251117
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Today in History Nov. 17-21 [07 World History-Harper]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_735&month=11&year=2025#assignment_6655
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T062600Z
+UID:event-assignment-6374
+DTSTART:20251118T130000Z
+DTEND:20251118T130000Z
+CLASS:PUBLIC
+DESCRIPTION:[Rubric] (https://ccaguardians-my.sharepoint.com/:w:/g/personal
+ /joblas_ccaguardians_net/ERB_Lx2RzctHnZmcyXEixP4BLSPj9uQ4tNxrl5EjPPWy7g?e=
+ gQz5gT)\n\n[The checklist we used for peer revisions on the 2nd draft] (ht
+ tps://ccaguardians-my.sharepoint.com/:w:/g/personal/joblas_ccaguardians_ne
+ t/EbwsJiWC2WxBg1lH6Sf6nmYB3L0GzzuSuqy2kpNCcRP2-g?e=bgkTpp)
+SEQUENCE:0
+SUMMARY:Justice McParagraph Final [07 English-Oblas]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_756&month=11&year=2025#assignment_6374
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="inline_disabled" href="https://cc
+ aguardians-my.sharepoint.com/:w:/g/personal/joblas_ccaguardians_net/ERB_Lx
+ 2RzctHnZmcyXEixP4BLSPj9uQ4tNxrl5EjPPWy7g?e=gQz5gT" target="_blank">Rubric<
+ /a></p>\n<p><a class="inline_disabled" href="https://ccaguardians-my.share
+ point.com/:w:/g/personal/joblas_ccaguardians_net/EbwsJiWC2WxBg1lH6Sf6nmYB3
+ L0GzzuSuqy2kpNCcRP2-g?e=bgkTpp" target="_blank">The checklist we used for 
+ peer revisions on the 2nd draft</a></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251202T062300Z
+UID:event-assignment-5363
+DTSTART;VALUE=DATE;VALUE=DATE:20251118
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:HW: 140 (1-7\, 16) Mon [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=11&year=2025#assignment_5363
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251202T062000Z
+UID:event-assignment-6376
+DTSTART:20251119T130000Z
+DTEND:20251119T130000Z
+CLASS:PUBLIC
+DESCRIPTION:Quiz on identifying subjects\, predicates\, and fragments.
+SEQUENCE:0
+SUMMARY:Subject\, Predicate\, Fragment Quiz [07 English-Oblas]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_756&month=11&year=2025#assignment_6376
+X-ALT-DESC;FMTTYPE=text/html:<p>Quiz on identifying subjects\, predicates\,
+  and fragments.</p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251202T062000Z
+UID:event-assignment-6348
+DTSTART:20251119T130000Z
+DTEND:20251119T130000Z
+CLASS:PUBLIC
+DESCRIPTION:[Vocabulary and Spelling Choice Homework] (https://ccaguardians
+ -my.sharepoint.com/:w:/g/personal/joblas_ccaguardians_net/IQDR94D_fvsaS6UM
+ j8pJ3PW_AWuctmpksY96ZEFr083iKq8?e=l1hiLV)
+SEQUENCE:0
+SUMMARY:Vocabulary and Spelling Choice Homework List 6 [07 English-Oblas]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_756&month=11&year=2025#assignment_6348
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="inline_disabled" href="https://cc
+ aguardians-my.sharepoint.com/:w:/g/personal/joblas_ccaguardians_net/IQDR94
+ D_fvsaS6UMj8pJ3PW_AWuctmpksY96ZEFr083iKq8?e=l1hiLV" target="_blank">Vocabu
+ lary and Spelling Choice Homework</a></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251202T062000Z
+UID:event-assignment-6349
+DTSTART:20251119T130000Z
+DTEND:20251119T130000Z
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Vocabulary and Spelling Quiz 6 [07 English-Oblas]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_756&month=11&year=2025#assignment_6349
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251202T062300Z
+UID:event-assignment-5366
+DTSTART;VALUE=DATE;VALUE=DATE:20251120
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:HW: 150 (13-17\, 25 odds) Tues [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=11&year=2025#assignment_5366
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251203T062400Z
+UID:event-assignment-6456
+DTSTART;VALUE=DATE;VALUE=DATE:20251120
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Test on photosynthesis and cell respiration [07 Life Science-Durot]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_736&month=11&year=2025#assignment_6456
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251204T061700Z
+UID:event-assignment-5365
+DTSTART;VALUE=DATE;VALUE=DATE:20251120
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Test: Chapter 3 [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=11&year=2025#assignment_5365
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251208T130800Z
+UID:event-assignment-3431
+DTSTART;VALUE=DATE;VALUE=DATE:20251120
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Ar Verbs Homework [Spanish 1A-Coomes]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_779&month=11&year=2025#assignment_3431
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251202T062000Z
+UID:event-assignment-6504
+DTSTART:20251121T130000Z
+DTEND:20251121T130000Z
+CLASS:PUBLIC
+DESCRIPTION:Answer questions #1-6 in complete sentences from page 46 after 
+ reading pages 43-45.
+SEQUENCE:0
+SUMMARY:Reading Comp Questions page 46 [07 English-Oblas]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_756&month=11&year=2025#assignment_6504
+X-ALT-DESC;FMTTYPE=text/html:<p>Answer questions #1-6 in complete sentences
+  from page 46 after reading pages 43-45.</p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251129T060800Z
+UID:event-assignment-5380
+DTSTART;VALUE=DATE;VALUE=DATE:20251121
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Class Part. 11/17 wk [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=11&year=2025#assignment_5380
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251203T141300Z
+UID:event-assignment-6566
+DTSTART;VALUE=DATE;VALUE=DATE:20251121
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Class Participation [07 Health Physical Education-Boswell]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_818&month=11&year=2025#assignment_6566
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251210T061800Z
+UID:event-assignment-3528
+DTSTART;VALUE=DATE;VALUE=DATE:20251121
+CLASS:PUBLIC
+DESCRIPTION:[Weekly Bible Participation.pdf] (https://ccaguardians.instruct
+ ure.com/courses/732/files/56526?wrap=1)
+SEQUENCE:0
+SUMMARY:📝 11/21 - Weekly Participation Journal [07 Bible-Swain]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_732&month=11&year=2025#assignment_3528
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="instructure_file_link instructure
+ _scribd_file auto_open" title="Weekly Bible Participation.pdf" href="https
+ ://ccaguardians.instructure.com/courses/732/files/56526?wrap=1" target="_b
+ lank" data-canvas-previewable="false" data-api-endpoint="https://ccaguardi
+ ans.instructure.com/api/v1/courses/732/files/56526" data-api-returntype="F
+ ile">Weekly Bible Participation.pdf</a></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251205T063000Z
+UID:event-assignment-6868
+DTSTART;VALUE=DATE;VALUE=DATE:20251201
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Week 7 -Class Participation  [07 Music -Jones]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_733&month=12&year=2025#assignment_6868
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251201T172700Z
+UID:event-assignment-6693
+DTSTART;VALUE=DATE;VALUE=DATE:20251202
+CLASS:PUBLIC
+DESCRIPTION:Include Title: "3 Key Doctrines of the Reformation" \n\nSee pa
+ ge 87 in textbook for chart containing information needed to complete this
+ .\n\nExplain what each doctrine is and why it was needed.  What was happe
+ ning at the time that caused the doctrines to be emphasized.\n\n[PosterRub
+ ric-1 (1).pdf] (https://ccaguardians.instructure.com/courses/735/files/689
+ 41?wrap=1)\n\n \n\n 
+SEQUENCE:0
+SUMMARY:3 Key Doctrines of the Renaissance Poster Due Tues. Dec. 2 [07 Worl
+ d History-Harper]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_735&month=12&year=2025#assignment_6693
+X-ALT-DESC;FMTTYPE=text/html:<p>Include Title: "3 Key Doctrines of the Refo
+ rmation"&nbsp\;</p>\n<p>See page 87 in textbook for chart containing infor
+ mation needed to complete this.</p>\n<p>Explain what each doctrine is and 
+ why it was needed.&nbsp\; What was happening at the time that caused the d
+ octrines to be emphasized.</p>\n<p><a class="instructure_file_link instruc
+ ture_scribd_file inline_disabled" title="PosterRubric-1 (1).pdf" href="htt
+ ps://ccaguardians.instructure.com/courses/735/files/68941?wrap=1" target="
+ _blank" data-canvas-previewable="false" data-api-endpoint="https://ccaguar
+ dians.instructure.com/api/v1/courses/735/files/68941" data-api-returntype=
+ "File">PosterRubric-1 (1).pdf</a></p>\n<p>&nbsp\;</p>\n<p>&nbsp\;</p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251201T173300Z
+UID:event-assignment-6697
+DTSTART;VALUE=DATE;VALUE=DATE:20251202
+CLASS:PUBLIC
+DESCRIPTION:[Understanding the Sacrificial System.docx] (https://ccaguardia
+ ns.instructure.com/courses/732/files/68942?wrap=1)
+SEQUENCE:0
+SUMMARY:📝 12/1 - Understanding the Sacrificial System & The Law [07 Bibl
+ e-Swain]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_732&month=12&year=2025#assignment_6697
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="instructure_file_link instructure
+ _scribd_file auto_open" title="Understanding the Sacrificial System.docx" 
+ href="https://ccaguardians.instructure.com/courses/732/files/68942?wrap=1"
+  target="_blank" data-canvas-previewable="false" data-api-endpoint="https:
+ //ccaguardians.instructure.com/api/v1/courses/732/files/68942" data-api-re
+ turntype="File">Understanding the Sacrificial System.docx</a></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251205T062300Z
+UID:event-assignment-6878
+DTSTART;VALUE=DATE;VALUE=DATE:20251203
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:DNA coloring page [07 Life Science-Durot]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_736&month=12&year=2025#assignment_6878
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T062400Z
+UID:event-assignment-6616
+DTSTART;VALUE=DATE;VALUE=DATE:20251204
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:HW: 195 (19-33 odds) Tues [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6616
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T062400Z
+UID:event-assignment-6617
+DTSTART;VALUE=DATE;VALUE=DATE:20251204
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Quiz on §4.5 [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6617
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T062500Z
+UID:event-assignment-6696
+DTSTART;VALUE=DATE;VALUE=DATE:20251204
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Test Chapter 4 Renaissance and Reformation Thurs. Dec. 4 [07 World 
+ History-Harper]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_735&month=12&year=2025#assignment_6696
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251208T155900Z
+UID:event-assignment-6877
+DTSTART;VALUE=DATE;VALUE=DATE:20251204
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Twizzler DNA Lab [07 Life Science-Durot]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_736&month=12&year=2025#assignment_6877
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T060800Z
+UID:event-assignment-3432
+DTSTART;VALUE=DATE;VALUE=DATE:20251204
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Ar Verbs Quiz [Spanish 1A-Coomes]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_779&month=12&year=2025#assignment_3432
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251126T152300Z
+UID:event-assignment-6614
+DTSTART;VALUE=DATE;VALUE=DATE:20251205
+CLASS:PUBLIC
+DESCRIPTION:[Christmas Sketchbook assignment 2025.docx] (https://ccaguardia
+ ns.instructure.com/courses/735/files/68767?wrap=1)
+SEQUENCE:0
+SUMMARY:Christmas sketchbook entry Due Fri. Dec. 5 [07 World History-Harper
+ ]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_735&month=12&year=2025#assignment_6614
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="instructure_file_link instructure
+ _scribd_file inline_disabled" title="Christmas Sketchbook assignment 2025.
+ docx" href="https://ccaguardians.instructure.com/courses/735/files/68767?w
+ rap=1" target="_blank" data-canvas-previewable="false" data-api-endpoint="
+ https://ccaguardians.instructure.com/api/v1/courses/735/files/68767" data-
+ api-returntype="File">Christmas Sketchbook assignment 2025.docx</a></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251207T060800Z
+UID:event-assignment-6623
+DTSTART;VALUE=DATE;VALUE=DATE:20251205
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Class Part. 12/01 wk  [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6623
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T195800Z
+UID:event-assignment-3530
+DTSTART;VALUE=DATE;VALUE=DATE:20251205
+CLASS:PUBLIC
+DESCRIPTION:[Update 125 - Weekly Bible Participation.png] (https://ccaguard
+ ians.instructure.com/courses/732/files/69309/preview)
+SEQUENCE:0
+SUMMARY:📝 12/5 - Weekly Participation Journal [07 Bible-Swain]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_732&month=12&year=2025#assignment_3530
+X-ALT-DESC;FMTTYPE=text/html:<p><img src="https://ccaguardians.instructure.
+ com/courses/732/files/69309/preview" alt="Update 125 - Weekly Bible Partic
+ ipation.png" loading="lazy" data-api-endpoint="https://ccaguardians.instru
+ cture.com/api/v1/courses/732/files/69309" data-api-returntype="File"></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T061400Z
+UID:event-assignment-6938
+DTSTART;VALUE=DATE;VALUE=DATE:20251208
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Nucleotide formative [07 Life Science-Durot]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_736&month=12&year=2025#assignment_6938
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251206T193200Z
+UID:event-assignment-6618
+DTSTART;VALUE=DATE;VALUE=DATE:20251210
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:HW: 201 (9-15\; 31-33\; 39) Mon [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6618
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251205T062300Z
+UID:event-assignment-6580
+DTSTART;VALUE=DATE;VALUE=DATE:20251211
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:DNA test [07 Life Science-Durot]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_736&month=12&year=2025#assignment_6580
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251128T160500Z
+UID:event-assignment-6619
+DTSTART;VALUE=DATE;VALUE=DATE:20251211
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Quiz on §4.6 [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6619
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251209T201300Z
+UID:event-assignment-6954
+DTSTART;VALUE=DATE;VALUE=DATE:20251211
+CLASS:PUBLIC
+DESCRIPTION:[7th Grade Q2 Project Planning Sheet.pdf] (https://ccaguardians
+ .instructure.com/courses/732/files/69552?wrap=1)
+SEQUENCE:0
+SUMMARY:📝 12/11 - Q2 Project Planning Sheet [07 Bible-Swain]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_732&month=12&year=2025#assignment_6954
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="instructure_file_link instructure
+ _scribd_file auto_open" title="7th Grade Q2 Project Planning Sheet.pdf" hr
+ ef="https://ccaguardians.instructure.com/courses/732/files/69552?wrap=1" t
+ arget="_blank" data-canvas-previewable="false" data-api-endpoint="https://
+ ccaguardians.instructure.com/api/v1/courses/732/files/69552" data-api-retu
+ rntype="File">7th Grade Q2 Project Planning Sheet.pdf</a></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251210T175800Z
+UID:event-assignment-5644
+DTSTART;VALUE=DATE;VALUE=DATE:20251212
+CLASS:PUBLIC
+DESCRIPTION:The new chords that the students need to learn are: Am\, E\, A\
+ , F\, and Bm
+SEQUENCE:0
+SUMMARY:Chords Test on E\, Am\, A\, F (Dm or Bm is extra credit) [07 Music 
+ -Jones]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_733&month=12&year=2025#assignment_5644
+X-ALT-DESC;FMTTYPE=text/html:<p>The new chords that the students need to le
+ arn are: Am\, E\, A\, F\, and Bm</p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251210T175900Z
+UID:event-assignment-6567
+DTSTART;VALUE=DATE;VALUE=DATE:20251212
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Ode to Joy (whole song)  [07 Music -Jones]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_733&month=12&year=2025#assignment_6567
+X-ALT-DESC;FMTTYPE=text/html:<p><iframe class="lti-embed" style="width: 720
+ px\; height: 405px\; display: inline-block\;" title="Ode to Joy tutorial (
+ the whole song) at slow\, medium\, and fast tempos" src="https://ccaguardi
+ ans.instructure.com/courses/733/external_tools/retrieve?display=borderless
+ &amp\;url=https%3A%2F%2Fccaguardians.instructuremedia.com%2Flti%2Flaunch%3
+ Fcustom_arc_launch_type%3Dbare_embed%26custom_arc_media_id%3De497eefc-74b6
+ -4c33-97be-75f9fea8c966-331%26custom_arc_start_at%3D0" width="720" height=
+ "405" loading="lazy" allowfullscreen="allowfullscreen" webkitallowfullscre
+ en="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allow="
+ geolocation *\; microphone *\; camera *\; midi *\; encrypted-media *\; aut
+ oplay *\; clipboard-write *\; display-capture *" data-studio-resizable="tr
+ ue" data-studio-tray-enabled="true" data-studio-convertible-to-link="true"
+ ></iframe></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251201T174300Z
+UID:event-assignment-3554
+DTSTART;VALUE=DATE;VALUE=DATE:20251212
+CLASS:PUBLIC
+SEQUENCE:0
+SUMMARY:‼️ Bible Test 4 - The Nation of God  [07 Bible-Swain]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_732&month=12&year=2025#assignment_3554
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251128T161800Z
+UID:event-assignment-6624
+DTSTART;VALUE=DATE;VALUE=DATE:20251212
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Class Part. 12/08 wk  [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6624
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251210T175400Z
+UID:event-assignment-6963
+DTSTART;VALUE=DATE;VALUE=DATE:20251215
+CLASS:PUBLIC
+SEQUENCE:0
+SUMMARY:Quiz on D\, E\, and F on the 4th string  [07 Music -Jones]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_733&month=12&year=2025#assignment_6963
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251014T180000Z
+UID:event-assignment-5430
+DTSTART;VALUE=DATE;VALUE=DATE:20251215
+CLASS:PUBLIC
+DESCRIPTION:[AR Verb Project Instructions] (https://ccaguardians-my.sharepo
+ int.com/:w:/g/personal/kcoomes_ccaguardians_net/EQidBkva2oVHvHGAc-ae-3QBor
+ 1y7nCTzzmDw_9OESyQKA?e=vsbv0B)
+SEQUENCE:0
+SUMMARY:-Ar Verb Project [Spanish 1A-Coomes]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_779&month=12&year=2025#assignment_5430
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="inline_disabled" title="Link" hre
+ f="https://ccaguardians-my.sharepoint.com/:w:/g/personal/kcoomes_ccaguardi
+ ans_net/EQidBkva2oVHvHGAc-ae-3QBor1y7nCTzzmDw_9OESyQKA?e=vsbv0B" target="_
+ blank">AR Verb Project Instructions</a></p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251128T160500Z
+UID:event-assignment-6620
+DTSTART;VALUE=DATE;VALUE=DATE:20251215
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:HW: 208 (1-31 odds)  Thurs [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6620
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251128T161300Z
+UID:event-assignment-6621
+DTSTART;VALUE=DATE;VALUE=DATE:20251216
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:HW: 215 (33-53 odds) Mon [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6621
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251128T161300Z
+UID:event-assignment-6622
+DTSTART;VALUE=DATE;VALUE=DATE:20251216
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Test on Ch. 4 (§§ 4.5 - 4.7) [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6622
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251210T173300Z
+UID:event-assignment-3546
+DTSTART;VALUE=DATE;VALUE=DATE:20251216
+CLASS:PUBLIC
+SEQUENCE:0
+SUMMARY:📑 Q2 - Genesis - Numbers Summary Project Due [07 Bible-Swain]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_732&month=12&year=2025#assignment_3546
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251128T161800Z
+UID:event-assignment-6625
+DTSTART;VALUE=DATE;VALUE=DATE:20251217
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Class Part. 12/15 wk  [Pre-Algebra Part 1-Pensgard]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_823&month=12&year=2025#assignment_6625
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251014T131900Z
+UID:event-assignment-3436
+DTSTART;VALUE=DATE;VALUE=DATE:20260115
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Chapter 2 Study Guide [Spanish 1A-Coomes]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_779&month=01&year=2026#assignment_3436
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20251014T131900Z
+UID:event-assignment-3437
+DTSTART;VALUE=DATE;VALUE=DATE:20260126
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Chapter 2 Test [Spanish 1A-Coomes]
+URL;VALUE=URI:https://ccaguardians.instructure.com/calendar?include_context
+ s=course_779&month=01&year=2026#assignment_3437
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+END:VCALENDAR
