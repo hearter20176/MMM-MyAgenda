@@ -67,6 +67,8 @@ Module.register("MMM-MyAgenda", {
     if (
       !this.config.useCalendarModule &&
       Array.isArray(this.config.calendars) &&
+<<<<<<< ours
+<<<<<<< ours
       this.config.calendars.length
     ) {
       this.sendSocketNotification("MYAG_I_C_FETCH", this.config);
@@ -99,6 +101,64 @@ Module.register("MMM-MyAgenda", {
     return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   },
 
+=======
+      this.config.calendars.length
+    ) {
+      this.sendSocketNotification("MYAG_I_C_FETCH", this.config);
+    }
+
+    setTimeout(() => {
+      if (!this._ready) return;
+      this.updateDom(0);
+    }, 2000);
+  },
+
+  getStyles() {
+    return [
+      this.file("MMM-MyAgenda.css"),
+      this.file("node_modules/fontawesome-free/css/all.min.css"),
+      this.file("node_modules/boxicons/css/boxicons.min.css"),
+      this.file("node_modules/iconoir/css/iconoir.css")
+    ];
+  },
+
+  /***************************************************************
+   * Utility helpers
+   ***************************************************************/
+  _escapeRegExp(s) {
+    return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  },
+
+>>>>>>> theirs
+=======
+      this.config.calendars.length
+    ) {
+      this.sendSocketNotification("MYAG_I_C_FETCH", this.config);
+    }
+
+    setTimeout(() => {
+      if (!this._ready) return;
+      this.updateDom(0);
+    }, 2000);
+  },
+
+  getStyles() {
+    return [
+      this.file("MMM-MyAgenda.css"),
+      this.file("node_modules/fontawesome-free/css/all.min.css"),
+      this.file("node_modules/boxicons/css/boxicons.min.css"),
+      this.file("node_modules/iconoir/css/iconoir.css")
+    ];
+  },
+
+  /***************************************************************
+   * Utility helpers
+   ***************************************************************/
+  _escapeRegExp(s) {
+    return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  },
+
+>>>>>>> theirs
   formatTime(dateObj) {
     if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return "";
     return dateObj.toLocaleTimeString([], {
@@ -125,6 +185,8 @@ Module.register("MMM-MyAgenda", {
     const s = Number(ev.startDate);
     const e = Number(ev.endDate);
     if (!s || !e) return false;
+<<<<<<< ours
+<<<<<<< ours
     const start = new Date(s);
     const end = new Date(e);
 
@@ -236,6 +298,188 @@ Module.register("MMM-MyAgenda", {
     start.setHours(0, 0, 0, 0);
 
     const end = new Date(start.getTime());
+=======
+    const start = new Date(s);
+    const end = new Date(e);
+
+    if (s === e) return true; // identical times → treat as full-day
+
+    const diffH = (end - start) / 3600000;
+    if (diffH >= 23.5 && diffH <= 24.5 && start.getHours() <= 5) return true;
+
+    return false;
+  },
+
+  getIconAndColor(originalTitle) {
+    const titleLower = (originalTitle || "").toLowerCase();
+    const cfg = this.config;
+
+    // 1. iconMapping (class-based)
+    if (cfg.iconMapping) {
+      for (const key in cfg.iconMapping) {
+        if (titleLower.includes(key.toLowerCase())) {
+          return {
+            iconType: "class",
+            iconClass: cfg.iconMapping[key],
+            color: cfg.keywordColors?.[key] || null
+          };
+        }
+      }
+    }
+
+    // 2. emoji mapping
+    if (cfg.iconEmojis) {
+      for (const key in cfg.iconEmojis) {
+        if (titleLower.includes(key.toLowerCase())) {
+          return {
+            iconType: "emoji",
+            icon: cfg.iconEmojis[key],
+            color: cfg.keywordColors?.[key] || null
+          };
+        }
+      }
+    }
+
+    // default fallback
+    return { iconType: "emoji", icon: "🗓️", color: "#9ca3af" };
+  },
+
+  _mixColor(hexOrRgba, alpha = 0.12) {
+    if (!hexOrRgba) return "";
+    const s = String(hexOrRgba).trim();
+    if (s.startsWith("rgba")) {
+      return s.replace(/rgba\(([^)]+)\)/, (m, inside) => {
+        const parts = inside.split(",").map((p) => p.trim());
+        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
+      });
+    }
+    const hex = s.replace("#", "");
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return "";
+  },
+
+  /***************************************************************
+   * Event Retrieval / Grouping
+   ***************************************************************/
+  getAllEvents() {
+    let all = [];
+    for (const [, arr] of this.eventPool.entries()) {
+      if (Array.isArray(arr)) all = all.concat(arr);
+    }
+
+    if (this.config.removeDuplicates) {
+      const seen = new Set();
+      all = all.filter((ev) => {
+        const key = `${ev.title?.toLowerCase() ?? ""}_${ev.startDate}_${ev.endDate}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    start.setDate(start.getDate() + Number(this.config.startOffsetDays));
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(start.getTime());
+>>>>>>> theirs
+=======
+    const start = new Date(s);
+    const end = new Date(e);
+
+    if (s === e) return true; // identical times → treat as full-day
+
+    const diffH = (end - start) / 3600000;
+    if (diffH >= 23.5 && diffH <= 24.5 && start.getHours() <= 5) return true;
+
+    return false;
+  },
+
+  getIconAndColor(originalTitle) {
+    const titleLower = (originalTitle || "").toLowerCase();
+    const cfg = this.config;
+
+    // 1. iconMapping (class-based)
+    if (cfg.iconMapping) {
+      for (const key in cfg.iconMapping) {
+        if (titleLower.includes(key.toLowerCase())) {
+          return {
+            iconType: "class",
+            iconClass: cfg.iconMapping[key],
+            color: cfg.keywordColors?.[key] || null
+          };
+        }
+      }
+    }
+
+    // 2. emoji mapping
+    if (cfg.iconEmojis) {
+      for (const key in cfg.iconEmojis) {
+        if (titleLower.includes(key.toLowerCase())) {
+          return {
+            iconType: "emoji",
+            icon: cfg.iconEmojis[key],
+            color: cfg.keywordColors?.[key] || null
+          };
+        }
+      }
+    }
+
+    // default fallback
+    return { iconType: "emoji", icon: "🗓️", color: "#9ca3af" };
+  },
+
+  _mixColor(hexOrRgba, alpha = 0.12) {
+    if (!hexOrRgba) return "";
+    const s = String(hexOrRgba).trim();
+    if (s.startsWith("rgba")) {
+      return s.replace(/rgba\(([^)]+)\)/, (m, inside) => {
+        const parts = inside.split(",").map((p) => p.trim());
+        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
+      });
+    }
+    const hex = s.replace("#", "");
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return "";
+  },
+
+  /***************************************************************
+   * Event Retrieval / Grouping
+   ***************************************************************/
+  getAllEvents() {
+    let all = [];
+    for (const [, arr] of this.eventPool.entries()) {
+      if (Array.isArray(arr)) all = all.concat(arr);
+    }
+
+    if (this.config.removeDuplicates) {
+      const seen = new Set();
+      all = all.filter((ev) => {
+        const key = `${ev.title?.toLowerCase() ?? ""}_${ev.startDate}_${ev.endDate}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    start.setDate(start.getDate() + Number(this.config.startOffsetDays));
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(start.getTime());
+>>>>>>> theirs
     end.setDate(end.getDate() + Number(this.config.numDays));
     end.setHours(23, 59, 59, 999);
 
@@ -352,6 +596,7 @@ Module.register("MMM-MyAgenda", {
           }
         });
         displayedTitle = displayedTitle.trim();
+<<<<<<< ours
 
         // truncation
         if (
@@ -363,12 +608,19 @@ Module.register("MMM-MyAgenda", {
         }
 
         const iconObj = this.getIconAndColor(originalTitle);
+
+        // determine color (keywordColors > calendarColors > icon fallback)
+        let finalColor = iconObj.color || "#9ca3af";
         const calName = ev.calendar || ev.calendarName;
-        const finalColor = this._resolveColor(
-          originalTitle,
-          calName,
-          iconObj.color
-        );
+        if (calName && cfg.calendarColors?.[calName]) {
+          finalColor = cfg.calendarColors[calName];
+        }
+        for (const kw in cfg.keywordColors) {
+          if (originalTitle.toLowerCase().includes(kw.toLowerCase())) {
+            finalColor = cfg.keywordColors[kw];
+            break;
+          }
+        }
 
         const eventEl = document.createElement("div");
         eventEl.className = "myag-event";
@@ -454,6 +706,117 @@ Module.register("MMM-MyAgenda", {
   /***************************************************************
    * Socket / module notifications
    ***************************************************************/
+=======
+
+        // truncation
+        if (
+          cfg.maxTitleLength > 0 &&
+          displayedTitle.length > cfg.maxTitleLength
+        ) {
+          displayedTitle =
+            displayedTitle.slice(0, cfg.maxTitleLength - 1) + "…";
+        }
+
+        const iconObj = this.getIconAndColor(originalTitle);
+
+        // determine color (keywordColors > calendarColors > icon fallback)
+        let finalColor = iconObj.color || "#9ca3af";
+        const calName = ev.calendar || ev.calendarName;
+        if (calName && cfg.calendarColors?.[calName]) {
+          finalColor = cfg.calendarColors[calName];
+        }
+        for (const kw in cfg.keywordColors) {
+          if (originalTitle.toLowerCase().includes(kw.toLowerCase())) {
+            finalColor = cfg.keywordColors[kw];
+            break;
+          }
+        }
+
+        const eventEl = document.createElement("div");
+        eventEl.className = "myag-event";
+        eventEl.style.borderLeft = `4px solid ${finalColor}`;
+
+        const isFD = ev.isFullday || this._heuristicFullDay(ev);
+        if (!isFD && finalColor && finalColor.startsWith("#")) {
+          eventEl.style.background = this._mixColor(finalColor, 0.1);
+        }
+
+        const left = document.createElement("div");
+        left.className = "myag-left";
+
+        const iconSpan = document.createElement("span");
+        iconSpan.className = "myag-icon";
+
+        if (iconObj.iconType === "class") {
+          const iEl = document.createElement("i");
+          iconObj.iconClass
+            .split(" ")
+            .filter(Boolean)
+            .forEach((c) => iEl.classList.add(c));
+          iEl.style.color = finalColor;
+          iconSpan.appendChild(iEl);
+        } else {
+          iconSpan.textContent = iconObj.icon;
+          iconSpan.style.color = finalColor;
+        }
+
+        left.appendChild(iconSpan);
+
+        const txtWrap = document.createElement("div");
+        txtWrap.className = "myag-textwrap";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "myag-title";
+        titleEl.innerText = displayedTitle;
+        titleEl.style.whiteSpace = cfg.wrapEventTitles ? "normal" : "nowrap";
+        txtWrap.appendChild(titleEl);
+
+        if (cfg.showDescription && ev.description) {
+          let desc = ev.description;
+          if (
+            cfg.maxDescriptionLength > 0 &&
+            desc.length > cfg.maxDescriptionLength
+          ) {
+            desc = desc.slice(0, cfg.maxDescriptionLength - 1) + "…";
+          }
+          const descEl = document.createElement("div");
+          descEl.className = "myag-desc";
+          descEl.innerText = desc;
+          txtWrap.appendChild(descEl);
+        }
+
+        left.appendChild(txtWrap);
+        eventEl.appendChild(left);
+
+        // times (if not full-day)
+        if (!isFD) {
+          const s = new Date(ev.startDate);
+          const e = new Date(ev.endDate);
+
+          const durH = (e - s) / 3600000;
+          if (!(durH >= 23.5 && durH <= 24.5)) {
+            const timeEl = document.createElement("div");
+            timeEl.className = "myag-right";
+            const st = this.formatTime(s);
+            const et = this.formatTime(e);
+            timeEl.innerText = st && et ? `${st}–${et}` : st;
+            eventEl.appendChild(timeEl);
+          }
+        }
+
+        section.appendChild(eventEl);
+      });
+
+      body.appendChild(section);
+    });
+
+    return base;
+  },
+
+  /***************************************************************
+   * Socket / module notifications
+   ***************************************************************/
+>>>>>>> theirs
   socketNotificationReceived(notification, payload) {
     if (notification === "MYAG_ICS_EVENTS") {
       if (!payload?.sourceName) return;
