@@ -10,7 +10,8 @@
   font-family: "SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", -apple-system, system-ui, sans-serif;
   letter-spacing: 0.01em;
   transition: opacity 0.6s ease, filter 0.6s ease;
-  max-height: 480px;
+  max-height: 470px;
+  --myag-font-scale: 1;
 }
 
 /* ---------- Liquid Glass Card (matches MMM-AmbientWeather) ---------- */
@@ -19,7 +20,7 @@
   width: 100%;
   min-width: 260px;
   max-width: 420px;
-  max-height: 480px;
+  max-height: 470px;
   padding: 16px;
   border-radius: 26px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -86,7 +87,7 @@
 
 /* ---------- Header ---------- */
 .myag-header {
-  font-size: 34px;
+  font-size: calc(34px * var(--myag-font-scale));
   font-weight: 600;
   text-align: center;
   margin-bottom: 8px;
@@ -99,15 +100,15 @@
 
 /* ---------- Empty ---------- */
 .myag-empty {
-  font-size: 0.78rem;
+  font-size: calc(0.78rem * var(--myag-font-scale));
   opacity: 0.65;
   text-align: center;
   color: rgba(233, 237, 245, 0.8);
 }
 
 .myag-agenda {
-  max-height: 448px;
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
   padding-right: 2px;
 }
 
@@ -117,7 +118,7 @@
   justify-content: center;
   gap: 8px;
   padding: 12px 8px;
-  font-size: 0.8rem;
+  font-size: calc(0.8rem * var(--myag-font-scale));
   color: rgba(233, 237, 245, 0.85);
 }
 
@@ -141,7 +142,7 @@
 }
 
 .myag-date-header {
-  font-size: 0.72rem;
+  font-size: calc(0.72rem * var(--myag-font-scale));
   font-weight: 600;
   color: rgba(233, 237, 245, 0.78);
   margin-bottom: 4px;
@@ -179,7 +180,7 @@
 }
 
 .myag-icon {
-  font-size: 1rem;
+  font-size: calc(1rem * var(--myag-font-scale));
   display: flex;
   align-items: center;
   color: #7dd3fc;
@@ -193,7 +194,7 @@
 }
 
 .myag-title {
-  font-size: 0.82rem;
+  font-size: calc(0.82rem * var(--myag-font-scale));
   font-weight: 650;
   text-align: left !important;
   line-height: 1.1;
@@ -202,14 +203,14 @@
 }
 
 .myag-desc {
-  font-size: 0.72rem;
+  font-size: calc(0.72rem * var(--myag-font-scale));
   opacity: 0.82;
   color: rgba(233, 237, 245, 0.78);
   margin-top: 1px;
 }
 
 .myag-right {
-  font-size: 0.8rem;
+  font-size: calc(0.8rem * var(--myag-font-scale));
   font-weight: 600;
   color: rgba(233, 237, 245, 0.8);
   padding-left: 6px;

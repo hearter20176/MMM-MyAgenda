@@ -278,6 +278,12 @@ Module.register("MMM-MyAgenda", {
     }
 
     const events = this.getAllEvents();
+    if (Array.isArray(events)) {
+      const count = events.length || 1;
+      // Shrink fonts when many events are displayed to keep the card within 470px.
+      const scale = Math.max(0.7, Math.min(1, 12 / count));
+      base.style.setProperty("--myag-font-scale", scale.toFixed(2));
+    }
     if (!events.length) {
       const empty = document.createElement("div");
       empty.className = "myag-empty";
