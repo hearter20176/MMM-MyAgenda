@@ -185,8 +185,6 @@ Module.register("MMM-MyAgenda", {
     const s = Number(ev.startDate);
     const e = Number(ev.endDate);
     if (!s || !e) return false;
-<<<<<<< ours
-<<<<<<< ours
     const start = new Date(s);
     const end = new Date(e);
 
