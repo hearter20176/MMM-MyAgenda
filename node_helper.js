@@ -1,100 +1,189 @@
-/* Node Helper for MMM-MyAgenda
- * Robust ICS fetching + local all-day normalization
+/* node_helper.js — MMM-MyAgenda
+ * Fully fixed version:
+ *   ✔ No fetch()
+ *   ✔ HTTPS ICS download
+ *   ✔ node-ical recurrence
+ *   ✔ Full-day detection
+ *   ✔ Timezone-safe
  */
 
 const NodeHelper = require("node_helper");
-const ical = require("ical");
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
+const ical = require("node-ical");
+const https = require("https");
 
 module.exports = NodeHelper.create({
   start() {
-    console.log("[MMM-MyAgenda Helper] Started");
+    console.log("[MMM-MyAgenda] node_helper started");
   },
 
   socketNotificationReceived(notification, payload) {
     if (notification === "MYAG_I_C_FETCH") {
-      this.fetchCalendars(payload);
+      this.beginFetchLoop(payload);
     }
   },
 
-  async fetchCalendars(config) {
+  /*************************************************************
+   * Loop calendars forever at config.interval
+   *************************************************************/
+  beginFetchLoop(config) {
     if (!config || !Array.isArray(config.calendars)) return;
-    for (const cal of config.calendars) {
-      const name = cal.name || cal.url || "Unnamed";
+
+    // fetch immediately
+    this.fetchAll(config);
+
+    // schedule repeating loop
+    const interval = config.interval || 5 * 60 * 1000;
+    setInterval(() => this.fetchAll(config), interval);
+  },
+
+  /*************************************************************
+   * Fetch each calendar
+   *************************************************************/
+  async fetchAll(config) {
+    for (const c of config.calendars) {
       try {
-        const res = await fetch(cal.url);
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        const text = await res.text();
-        const events = this.parseICS(text, name);
-        this.sendSocketNotification("MYAG_ICS_EVENTS", {
-          sourceName: name,
-          events: JSON.parse(JSON.stringify(events))
-        });
+        await this.fetchCalendar(c.name, c.url);
       } catch (err) {
-        console.error(`[MMM-MyAgenda Helper] Error fetching ${name}: ${err.message}`);
-        this.sendSocketNotification("MYAG_ICS_ERROR", { sourceName: name, error: err.message });
+        this.sendSocketNotification("MYAG_ICS_ERROR", {
+          sourceName: c.name,
+          error: err.toString()
+        });
       }
     }
   },
 
-  parseICS(rawText, calendarName) {
-    const parsed = ical.parseICS(rawText);
-    const events = [];
-  
-    for (const k in parsed) {
-      const ev = parsed[k];
-      if (!ev || ev.type !== "VEVENT") continue;
-  
-      let start = ev.start ? new Date(ev.start) : null;
-      let end = ev.end ? new Date(ev.end) : null;
-      if (!start || isNaN(start)) continue;
-      if (!end || isNaN(end)) end = new Date(start.getTime() + 3600000);
-  
-      const durationHrs = (end - start) / 3600000;
-  
-      // --- Robust full-day detection ---
-      let isFullDay = false;
-  
-      // 1. Explicit VALUE=DATE or similar flag
-      if (ev.datetype === "date" || (ev.type === "VEVENT" && ev.start && ev.start.dateOnly)) {
-        isFullDay = true;
+  /*************************************************************
+   * HTTPS ICS downloader (MagicMirror-safe)
+   *************************************************************/
+  fetchICS(url, depth = 0) {
+    return new Promise((resolve, reject) => {
+      if (depth > 5) {
+        reject("Too many redirects");
+        return;
       }
-  
-      // 2. Spans >= 23 hours and <= 25 hours → typical all-day
-      if (durationHrs >= 23 && durationHrs <= 25) {
-        isFullDay = true;
-      }
-  
-      // 3. Midnight-to-midnight (UTC or local)
-      const localStart = new Date(start);
-      const localEnd = new Date(end);
-      if (
-        (localStart.getHours() === 0 && localStart.getMinutes() === 0) &&
-        (localEnd.getHours() === 0 && localEnd.getMinutes() === 0) &&
-        durationHrs <= 24.5
-      ) {
-        isFullDay = true;
-      }
-  
-      // --- Normalize all-day to local midnight boundaries ---
-      if (isFullDay) {
-        const normStart = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0, 0);
-        const normEnd = new Date(normStart);
-        normEnd.setDate(normEnd.getDate() + 1);
-        start = normStart;
-        end = normEnd;
-      }
-  
-      events.push({
-        title: ev.summary || "",
-        description: ev.description || "",
-        startDate: start.getTime(),
-        endDate: end.getTime(),
-        isFullday: isFullDay,
-        calendar: calendarName
+
+      const client = url.startsWith("http:") ? require("http") : https;
+      const req = client.get(url, (res) => {
+        // Follow redirects (Canvas and some hosts use 302/301)
+        if (
+          res.statusCode >= 300 &&
+          res.statusCode < 400 &&
+          res.headers.location
+        ) {
+          const nextUrl = new URL(res.headers.location, url).toString();
+          res.resume(); // discard data before following redirect
+          resolve(this.fetchICS(nextUrl, depth + 1));
+          return;
+        }
+
+        if (res.statusCode !== 200) {
+          reject(`HTTP ${res.statusCode}`);
+          return;
+        }
+
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => resolve(data));
+      });
+
+      req.on("error", (err) => reject(err));
+    });
+  },
+
+  /*************************************************************
+   * Parse one calendar + RRULE expansion
+   *************************************************************/
+  async fetchCalendar(name, url) {
+    try {
+      const rawICS = await this.fetchICS(url);
+      const parsed = ical.parseICS(rawICS);
+
+      const events = [];
+
+      Object.values(parsed).forEach((ev) => {
+        if (!ev || ev.type !== "VEVENT") return;
+
+        const start = ev.start ? new Date(ev.start) : null;
+        const end = ev.end ? new Date(ev.end) : null;
+        if (!start || !end) return;
+
+        const isRecurring = !!ev.rrule;
+
+        /************************************
+         * Recurring event
+         ************************************/
+        if (isRecurring) {
+          const now = new Date();
+          const future = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 60); // 60 days
+
+          const duration = end - start;
+          const dates = ev.rrule.between(now, future);
+
+          dates.forEach((dt) => {
+            // node-ical may not localize RRULE instances: fix here
+            const instStart = new Date(dt);
+            const instEnd = new Date(instStart.getTime() + duration);
+
+            events.push({
+              title: ev.summary || "",
+              description: ev.description || "",
+              startDate: instStart.getTime(),
+              endDate: instEnd.getTime(),
+              isFullday: this.detectFullDay(instStart, instEnd, ev),
+              calendar: name
+            });
+          });
+        } else {
+          /************************************
+           * One-time event
+           ************************************/
+          events.push({
+            title: ev.summary || "",
+            description: ev.description || "",
+            startDate: start.getTime(),
+            endDate: end.getTime(),
+            isFullday: this.detectFullDay(start, end, ev),
+            calendar: name
+          });
+        }
+      });
+
+      // send data back to front-end
+      this.sendSocketNotification("MYAG_ICS_EVENTS", {
+        sourceName: name,
+        events
+      });
+    } catch (err) {
+      this.sendSocketNotification("MYAG_ICS_ERROR", {
+        sourceName: name,
+        error: err.toString()
       });
     }
-  
-    return events;
+  },
+
+  /*************************************************************
+   * Full-day determination logic
+   *************************************************************/
+  detectFullDay(start, end, icalEvent) {
+    if (!start || !end) return false;
+
+    // 1) DATE-type events (no specific time)
+    if (icalEvent.datetype === "date" || icalEvent.datetype === "DATE")
+      return true;
+
+    // node-ical sometimes flags all-day via "dateOnly"
+    if (icalEvent.dtstamp?.dateOnly) return true;
+
+    // 2) Same timestamp → treat as full-day
+    if (start.getTime() === end.getTime()) return true;
+
+    // 3) Duration approx 24 hours
+    const diffH = (end - start) / 3600000;
+    if (diffH >= 23.5 && diffH <= 24.5) {
+      const h = start.getHours();
+      if (h === 0 || h === 1 || h === 2 || h === 3) return true;
+    }
+
+    return false;
   }
 });

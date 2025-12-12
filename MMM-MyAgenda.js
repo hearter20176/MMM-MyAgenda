@@ -1,296 +1,515 @@
-/* MagicMirror² Module: MMM-MyAgenda
- * Frosted iOS glass agenda with color-coded icons and full-day detection
- */
+/* MMM-MyAgenda.js — Full merged and corrected version */
 
 Module.register("MMM-MyAgenda", {
   defaults: {
+    header: "Colton Homework",
     useCalendarModule: false,
     calendars: [],
-    animationSpeed: 1000,
-    waitFetch: 5000,
-    interval: 30 * 60 * 1000,
+
+    // display window
     startOffsetDays: 0,
-    numDays: 7,
+    numDays: 5,
+
+    // appearance
     maxTitleLength: 0,
-    showDescription: true,
-    maxDescriptionLength: 80,
-    filterText: [],
-    debug: false,
     wrapEventTitles: true,
-    maxTitleLength: "",
+    showDescription: false,
+    maxDescriptionLength: 80,
+
+    // filtering
+    filterText: [],
+
+    // mapping + colors
+    keywordColors: {},
     calendarColors: {},
     iconMapping: {},
-    keywordColors: {}
+    iconEmojis: {},
+
+    // dedupe
+    removeDuplicates: true,
+
+    // debug
+    debug: false
   },
+
+  // state
+  eventPool: null,
+  _ready: false,
 
   start() {
-    this.eventPool = new Map();
-    this.activeConfig = { ...this.defaults, ...this.config };
-    if (!this.activeConfig.useCalendarModule && this.activeConfig.calendars.length) {
-      this.sendSocketNotification("MYAG_I_C_FETCH", this.activeConfig);
+    // Legacy aliases -> prefer modern startOffsetDays/numDays if provided.
+    if (typeof this.config.startDayIndex === "number") {
+      this.config.startOffsetDays = this.config.startDayIndex;
     }
-    setTimeout(() => this.updateDom(this.activeConfig.animationSpeed), this.activeConfig.waitFetch);
+    if (typeof this.config.endDayIndex === "number") {
+      // endDayIndex is inclusive; ensure at least 1 day.
+      const start = Number(this.config.startOffsetDays) || 0;
+      const len = Number(this.config.endDayIndex) - start + 1;
+      this.config.numDays = Math.max(len, 1);
+    }
+
+    // Respect the standard MagicMirror header property if provided at module level.
+    if (typeof this.data?.header === "string") {
+      this.config.header = this.data.header;
+    }
+
+    Log.info(`[${this.name}] Starting`);
+    this.eventPool = new Map();
+
+    const waitingForIcs =
+      !this.config.useCalendarModule &&
+      Array.isArray(this.config.calendars) &&
+      this.config.calendars.length > 0;
+    const waitingForCalendarModule = !!this.config.useCalendarModule;
+
+    this.isLoading = waitingForIcs || waitingForCalendarModule;
+
+    if (
+      !this.config.useCalendarModule &&
+      Array.isArray(this.config.calendars) &&
+      this.config.calendars.length
+    ) {
+      this.sendSocketNotification("MYAG_I_C_FETCH", this.config);
+    }
+
+    setTimeout(() => {
+      if (!this._ready) return;
+      this.updateDom(0);
+    }, 2000);
   },
 
-  getDom() {
-    const cfg = this.activeConfig;
-    const wrapper = document.createElement("div");
-    wrapper.className = "MMM-MyAgenda";
+  getStyles() {
+    return [
+      this.file("MMM-MyAgenda.css"),
+      this.file("node_modules/fontawesome-free/css/all.min.css"),
+      this.file("node_modules/boxicons/css/boxicons.min.css"),
+      this.file("node_modules/iconoir/css/iconoir.css")
+    ];
+  },
 
-    const card = document.createElement("div");
-    card.className = "glass-card raised-edge";
+  // Ensure the header uses the module's config header by default.
+  getHeader() {
+    return this.config.header || this.data?.header || this.name;
+  },
 
-    const header = document.createElement("div");
-    header.className = "myag-header";
-    header.innerText = this.data.header || "My Agenda";
-    card.appendChild(header);
+  /***************************************************************
+   * Utility helpers
+   ***************************************************************/
+  _escapeRegExp(s) {
+    return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  },
 
-    const agenda = document.createElement("div");
-    agenda.className = "myag-agenda";
+  formatTime(dateObj) {
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return "";
+    return dateObj.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  },
 
-    const grouped = this.groupEventsByDay(this.getAllEvents());
-    const days = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+  _getFilterList(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) {
+      return raw.map((s) => String(s)).filter((s) => s.trim().length > 0);
+    }
+    if (typeof raw === "string") {
+      return raw
+        .split(/[|,;]+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+    }
+    return [];
+  },
 
-    if (!days.length) {
-      const empty = document.createElement("div");
-      empty.className = "myag-empty";
-      empty.innerText = "No upcoming events";
-      agenda.appendChild(empty);
-    } else {
-      days.forEach((dayKey) => {
-        const section = document.createElement("div");
-        section.className = "myag-day-section";
+  _heuristicFullDay(ev) {
+    const s = Number(ev.startDate);
+    const e = Number(ev.endDate);
+    if (!s || !e) return false;
+    const start = new Date(s);
+    const end = new Date(e);
 
-        const [y, m, d] = dayKey.split("-").map((v) => Number(v));
-        const dateObj = new Date(y, m - 1, d);
-        const dateHeader = document.createElement("div");
-        dateHeader.className = "myag-date-header";
-        dateHeader.innerText = dateObj.toLocaleDateString([], {
-          weekday: "short",
-          month: "short",
-          day: "numeric"
-        });
-        section.appendChild(dateHeader);
+    if (s === e) return true; // identical times → treat as full-day
 
-        grouped[dayKey].forEach((ev) => {
-          let title = ev.title || "";
-          (cfg.filterText || []).forEach((pattern) => {
-            const regex = new RegExp(pattern, "ig");
-            title = title.replace(regex, "");
-          });
-          title = title.trim();
-          if (cfg.maxTitleLength > 0 && title.length > cfg.maxTitleLength)
-            title = title.slice(0, cfg.maxTitleLength - 1) + "…";
+    const diffH = (end - start) / 3600000;
+    if (diffH >= 23.5 && diffH <= 24.5 && start.getHours() <= 5) return true;
 
-          const { icon, color } = this.getIconAndColor(title);
+    return false;
+  },
 
-          const eventEl = document.createElement("div");
-          eventEl.className = "myag-event";
-          eventEl.style.borderLeftColor = color;
+  getIconAndColor(originalTitle) {
+    const titleLower = (originalTitle || "").toLowerCase();
+    const cfg = this.config;
 
-          const left = document.createElement("div");
-          left.className = "myag-left";
+    // 1. iconMapping (class-based)
+    if (cfg.iconMapping) {
+      for (const key in cfg.iconMapping) {
+        if (titleLower.includes(key.toLowerCase())) {
+          return {
+            iconType: "class",
+            iconClass: cfg.iconMapping[key],
+            color: cfg.keywordColors?.[key] || null
+          };
+        }
+      }
+    }
 
-          const iconSpan = document.createElement("span");
-          iconSpan.className = "myag-icon";
-          iconSpan.style.color = color;
-          iconSpan.textContent = icon;
-          left.appendChild(iconSpan);
+    // 2. emoji mapping
+    if (cfg.iconEmojis) {
+      for (const key in cfg.iconEmojis) {
+        if (titleLower.includes(key.toLowerCase())) {
+          return {
+            iconType: "emoji",
+            icon: cfg.iconEmojis[key],
+            color: cfg.keywordColors?.[key] || null
+          };
+        }
+      }
+    }
 
-          const textWrap = document.createElement("div");
-          textWrap.className = "myag-textwrap";
+    // default fallback
+    return { iconType: "emoji", icon: "?", color: "#9ca3af" };
+  },
 
-          const titleEl = document.createElement("span");
-          titleEl.className = "myag-title";
-          titleEl.textContent = title;
-          textWrap.appendChild(titleEl);
+  _resolveColor(originalTitle, calendarName, iconColor) {
+    const cfg = this.config;
+    const lower = (originalTitle || "").toLowerCase();
 
-          if (cfg.showDescription && ev.description) {
-            let desc = ev.description.trim();
-            if (cfg.maxDescriptionLength > 0 && desc.length > cfg.maxDescriptionLength)
-              desc = desc.slice(0, cfg.maxDescriptionLength - 1) + "…";
-            const descEl = document.createElement("div");
-            descEl.className = "myag-desc";
-            descEl.textContent = desc;
-            textWrap.appendChild(descEl);
-          }
+    let color = iconColor || "#9ca3af";
 
-          left.appendChild(textWrap);
+    if (calendarName && cfg.calendarColors?.[calendarName]) {
+      color = cfg.calendarColors[calendarName];
+    }
 
-          const right = document.createElement("div");
-          right.className = "myag-right";
-          const timeSpan = document.createElement("span");
+    if (cfg.keywordColors) {
+      for (const kw in cfg.keywordColors) {
+        if (lower.includes(kw.toLowerCase())) {
+          color = cfg.keywordColors[kw];
+          break;
+        }
+      }
+    }
 
-          if (!ev.isFullday) {
-            const s = Number(ev.startDate);
-            const e = Number(ev.endDate);
-            const startDate = new Date(s);
-            const endDate = new Date(e);
-            const durationHrs = (endDate - startDate) / 3600000;
-          
-            // Treat any event longer than 23 hours as full-day visually
-            if (durationHrs >= 23) {
-              timeSpan.textContent = ""; // hide times
-            } else {
-              const startStr = this.formatTime(startDate);
-              const endStr = this.formatTime(endDate);
-              timeSpan.textContent = startStr && endStr ? `${startStr}–${endStr}` : startStr;
-            }
-          } else {
-            timeSpan.textContent = ""; // full-day = no time
-          }
-          
-          right.appendChild(timeSpan);
-          eventEl.appendChild(left);
-          eventEl.appendChild(right);
-          section.appendChild(eventEl);
-          
-          // Replace keywords with icons
-          for (const keyword in this.config.iconMapping) {
-            if (title.includes(keyword)) {
-              iconSpan.classList.add("fa", this.config.iconMapping[keyword]);
-              title = title.replace(keyword, '').trim();
-              break;
-            }
-          }
-          
-          // Truncate title if needed
-          if (!this.config.wrapEventTitles && title.length > this.config.maxTitleLength) {
-            title = title.substring(0, this.config.maxTitleLength) + '…';
-          }
-          
-          const titleElement = document.createElement("div");
-          titleElement.className = "event-title";
-          titleElement.innerText = title;
-          titleElement.style.whiteSpace = this.config.wrapEventTitles ? "normal" : "nowrap";
-          titleElement.style.overflow = "hidden";
-          titleElement.style.textOverflow = "ellipsis";
-          
-          // Apply calendar color
-          for ( color = this.config.calendarColors[ ev.calendarName ] || "#FFFFFF"; color; );
-          eventElement.style.borderLeft = `4px solid ${color}`;
-          
-          // Apply keyword-based background color
-          for (const keyword in this.config.keywordColors) {
-            if (ev.title.includes(keyword)) {
-              eventElement.style.backgroundColor = this.config.keywordColors[keyword];
-              break;
-            }
-          }
-          
-          eventElement.appendChild(iconSpan);
-          eventElement.appendChild( titleElement );
-        } );
+    return color;
+  },
 
-        agenda.appendChild(section);
+  _mixColor(hexOrRgba, alpha = 0.12) {
+    if (!hexOrRgba) return "";
+    const s = String(hexOrRgba).trim();
+    if (s.startsWith("rgba")) {
+      return s.replace(/rgba\(([^)]+)\)/, (m, inside) => {
+        const parts = inside.split(",").map((p) => p.trim());
+        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
+      });
+    }
+    const hex = s.replace("#", "");
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return "";
+  },
+
+  /***************************************************************
+   * Event Retrieval / Grouping
+   ***************************************************************/
+  getAllEvents() {
+    let all = [];
+    for (const [, arr] of this.eventPool.entries()) {
+      if (Array.isArray(arr)) all = all.concat(arr);
+    }
+
+    if (this.config.removeDuplicates) {
+      const seen = new Set();
+      all = all.filter((ev) => {
+        const key = `${ev.title?.toLowerCase() ?? ""}_${ev.startDate}_${ev.endDate}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
       });
     }
 
-    card.appendChild(agenda);
-    wrapper.appendChild(card);
-    return wrapper;
-  },
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    start.setDate(start.getDate() + Number(this.config.startOffsetDays));
+    start.setHours(0, 0, 0, 0);
 
-  formatTime(date) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const end = new Date(start.getTime());
+    end.setDate(end.getDate() + Number(this.config.numDays));
+    end.setHours(23, 59, 59, 999);
+
+    const filtered = all.filter((ev) => {
+      const s = Number(ev.startDate);
+      const e = Number(ev.endDate);
+      if (!s || !e) return false;
+      // Only include events that start within the requested window.
+      return s >= start.getTime() && s <= end.getTime();
+    });
+
+    filtered.sort((a, b) => Number(a.startDate) - Number(b.startDate));
+    return filtered;
   },
 
   groupEventsByDay(events) {
     const grouped = {};
     events.forEach((ev) => {
-      const d = new Date(Number(ev.startDate));
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const d = new Date(ev.startDate);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const key = `${y}-${m}-${day}`;
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(ev);
     });
     return grouped;
   },
 
-  getAllEvents() {
-    let all = [];
-    for (const [, list] of this.eventPool.entries()) all = all.concat(list);
+  /***************************************************************
+   * DOM Rendering
+   ***************************************************************/
+  getDom() {
+    this._ready = true;
+    const cfg = this.config;
 
-    const seen = new Set();
-    all = all.filter((ev) => {
-      const key = `${(ev.title || "").toLowerCase()}_${ev.startDate}_${ev.endDate}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
+    const base = document.createElement("div");
+    base.className = "MMM-MyAgenda";
+
+    const card = document.createElement("div");
+    card.className = "glass-card raised-edge";
+    base.appendChild(card);
+
+    const header = document.createElement("div");
+    header.className = "myag-header";
+    header.innerText = cfg.header;
+    card.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "myag-agenda";
+    card.appendChild(body);
+
+    if (this.isLoading) {
+      const loading = document.createElement("div");
+      loading.className = "myag-loading";
+
+      const spinner = document.createElement("span");
+      spinner.className = "myag-spinner";
+      loading.appendChild(spinner);
+
+      const txt = document.createElement("span");
+      txt.innerText = "Loading calendars...";
+      loading.appendChild(txt);
+
+      body.appendChild(loading);
+      return base;
+    }
+
+    const events = this.getAllEvents();
+    if (!events.length) {
+      const empty = document.createElement("div");
+      empty.className = "myag-empty";
+      empty.innerText = "No upcoming events";
+      body.appendChild(empty);
+      return base;
+    }
+
+    const grouped = this.groupEventsByDay(events);
+    const dayKeys = Object.keys(grouped).sort();
+
+    dayKeys.forEach((dayKey) => {
+      const [y, m, d] = dayKey.split("-").map(Number);
+      const dayObj = new Date(y, m - 1, d);
+
+      const section = document.createElement("div");
+      section.className = "myag-day-section";
+
+      const dateHdr = document.createElement("div");
+      dateHdr.className = "myag-date-header";
+      dateHdr.innerText = dayObj.toLocaleDateString([], {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      });
+      section.appendChild(dateHdr);
+
+      const dayEvents = grouped[dayKey].sort(
+        (a, b) => Number(a.startDate) - Number(b.startDate)
+      );
+
+      dayEvents.forEach((ev) => {
+        const originalTitle = ev.title || "";
+
+        // remove filterText safely
+        let displayedTitle = originalTitle;
+        const filters = this._getFilterList(cfg.filterText);
+        filters.forEach((frag) => {
+          try {
+            const esc = this._escapeRegExp(frag);
+            const rx = new RegExp(esc, "gi");
+            displayedTitle = displayedTitle.replace(rx, "");
+          } catch (err) {
+            displayedTitle = displayedTitle.split(frag).join("");
+          }
+        });
+        displayedTitle = displayedTitle.trim();
+
+        // truncation
+        if (
+          cfg.maxTitleLength > 0 &&
+          displayedTitle.length > cfg.maxTitleLength
+        ) {
+          displayedTitle =
+            displayedTitle.slice(0, cfg.maxTitleLength - 1) + "…";
+        }
+
+        const iconObj = this.getIconAndColor(originalTitle);
+        const calName = ev.calendar || ev.calendarName;
+        const finalColor = this._resolveColor(
+          originalTitle,
+          calName,
+          iconObj.color
+        );
+
+        const eventEl = document.createElement("div");
+        eventEl.className = "myag-event";
+        eventEl.style.borderLeft = `4px solid ${finalColor}`;
+
+        const isFD = ev.isFullday || this._heuristicFullDay(ev);
+        if (!isFD && finalColor && finalColor.startsWith("#")) {
+          eventEl.style.background = this._mixColor(finalColor, 0.1);
+        }
+
+        const left = document.createElement("div");
+        left.className = "myag-left";
+
+        const iconSpan = document.createElement("span");
+        iconSpan.className = "myag-icon";
+
+        if (iconObj.iconType === "class") {
+          const iEl = document.createElement("i");
+          iconObj.iconClass
+            .split(" ")
+            .filter(Boolean)
+            .forEach((c) => iEl.classList.add(c));
+          iEl.style.color = finalColor;
+          iconSpan.appendChild(iEl);
+        } else {
+          iconSpan.textContent = iconObj.icon;
+          iconSpan.style.color = finalColor;
+        }
+
+        left.appendChild(iconSpan);
+
+        const txtWrap = document.createElement("div");
+        txtWrap.className = "myag-textwrap";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "myag-title";
+        titleEl.innerText = displayedTitle;
+        titleEl.style.whiteSpace = cfg.wrapEventTitles ? "normal" : "nowrap";
+        txtWrap.appendChild(titleEl);
+
+        if (cfg.showDescription && ev.description) {
+          let desc = ev.description;
+          if (
+            cfg.maxDescriptionLength > 0 &&
+            desc.length > cfg.maxDescriptionLength
+          ) {
+            desc = desc.slice(0, cfg.maxDescriptionLength - 1) + "…";
+          }
+          const descEl = document.createElement("div");
+          descEl.className = "myag-desc";
+          descEl.innerText = desc;
+          txtWrap.appendChild(descEl);
+        }
+
+        left.appendChild(txtWrap);
+        eventEl.appendChild(left);
+
+        // times (if not full-day)
+        if (!isFD) {
+          const s = new Date(ev.startDate);
+          const e = new Date(ev.endDate);
+
+          const durH = (e - s) / 3600000;
+          if (!(durH >= 23.5 && durH <= 24.5)) {
+            const timeEl = document.createElement("div");
+            timeEl.className = "myag-right";
+            const st = this.formatTime(s);
+            const et = this.formatTime(e);
+            timeEl.innerText = st && et ? `${st}–${et}` : st;
+            eventEl.appendChild(timeEl);
+          }
+        }
+
+        section.appendChild(eventEl);
+      });
+
+      body.appendChild(section);
     });
 
-    const cfg = this.activeConfig;
-    const now = new Date();
-    const start = new Date(now);
-    start.setDate(now.getDate() + cfg.startOffsetDays);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(start.getDate() + cfg.numDays);
-    end.setHours(23, 59, 59, 999);
-
-    return all.filter((e) => e.startDate <= end.getTime() && e.endDate >= start.getTime())
-      .sort((a, b) => a.startDate - b.startDate);
+    return base;
   },
 
-  getIconAndColor(title = "") {
-    const t = title.toLowerCase();
-    if (t.includes("birthday") || t.includes("anniversary")) return { icon: "🎂", color: "#f472b6" };
-    if (t.includes("meeting") || t.includes("call") || t.includes("zoom")) return { icon: "📞", color: "#3b82f6" };
-    if (t.includes("doctor") || t.includes("dentist")) return { icon: "🏥", color: "#60a5fa" };
-    if (t.includes("math") || t.includes("exam") || t.includes("test")) return { icon: "🧮", color: "#a78bfa" };
-    if (t.includes("soccer") || t.includes("game") || t.includes("sport")) return { icon: "⚽", color: "#22c55e" };
-    if (t.includes("travel") || t.includes("flight")) return { icon: "✈️", color: "#f59e0b" };
-    return { icon: "🗓️", color: "#9ca3af" };
-  },
-
+  /***************************************************************
+   * Socket / module notifications
+   ***************************************************************/
   socketNotificationReceived(notification, payload) {
     if (notification === "MYAG_ICS_EVENTS") {
       if (!payload?.sourceName) return;
-      const events = (payload.events || []).map((ev) => ({
-        title: ev.title || "",
-        description: ev.description || "",
-        startDate: Number(ev.startDate),
-        endDate: Number(ev.endDate),
-        isFullday: !!ev.isFullday,
-        calendar: ev.calendar || payload.sourceName
-      }));
-      this.eventPool.set(payload.sourceName, events);
-      this.updateDom(this.activeConfig.animationSpeed);
+      this.isLoading = false;
+
+      if (this.config.debug) {
+        Log.info(
+          `[${this.name}] Received ${Array.isArray(payload.events) ? payload.events.length : 0} events from ${payload.sourceName}`
+        );
+      }
+
+      const normalized = Array.isArray(payload.events)
+        ? payload.events.map((ev) => ({
+            title: ev.title || "",
+            description: ev.description || "",
+            startDate: Number(ev.startDate),
+            endDate: Number(ev.endDate),
+            isFullday: !!ev.isFullday,
+            calendar: ev.calendar || ev.calendarName || payload.sourceName
+          }))
+        : [];
+
+      this.eventPool.set(payload.sourceName, normalized);
+      if (this._ready) this.updateDom();
     }
+
     if (notification === "MYAG_ICS_ERROR") {
-      console.error(`[${this.name}] ${payload.sourceName}: ${payload.error}`);
+      Log.error(`[${this.name}] ${payload?.sourceName}: ${payload?.error}`);
+      this.isLoading = false;
+      if (this._ready) this.updateDom();
     }
   },
 
   notificationReceived(notification, payload) {
-    if (notification === "CALENDAR_EVENTS" && this.activeConfig.useCalendarModule) {
-      const normalized = Array.isArray(payload?.events)
-        ? payload.events.map((ev) => {
-            const startMs = Number(
-              ev.startDate ??
-              (ev.start && ev.start.getTime ? ev.start.getTime() : null) ??
-              (ev.start || 0)
-            );
-            const endMs = Number(
-              ev.endDate ??
-              (ev.end && ev.end.getTime ? ev.end.getTime() : null) ??
-              (ev.end || 0)
-            );
-            return {
-              title: ev.title || ev.summary || "",
-              description: ev.description || ev.extendedProps?.description || "",
-              startDate: isNaN(startMs) ? 0 : startMs,
-              endDate: isNaN(endMs) ? 0 : endMs,
-              isFullday: !!(ev.isFullday || ev.fullDay || ev.allDay),
-              calendar: ev.calendar || ev.calendarName || payload?.calendar || "calendar"
-            };
-          })
-        : [];
-      this.eventPool.set("core", normalized);
-      this.updateDom(this.activeConfig.animationSpeed);
-    }
-  },
+    if (notification === "CALENDAR_EVENTS" && this.config.useCalendarModule) {
+      this.isLoading = false;
+      // Default calendar broadcasts the array directly (not wrapped in { events }). Support both shapes.
+      const incomingEvents = Array.isArray(payload) ? payload : payload?.events;
 
-  getStyles() {
-    return [this.file("MMM-MyAgenda.css")];
+      if (this.config.debug) {
+        const count = Array.isArray(incomingEvents) ? incomingEvents.length : 0;
+        Log.info(`[${this.name}] Received ${count} CALENDAR_EVENTS from core calendar`);
+      }
+
+      const norm = Array.isArray(incomingEvents)
+        ? incomingEvents.map((ev) => ({
+            title: ev.title || ev.summary || "",
+            description: ev.description || ev.extendedProps?.description || "",
+            startDate: Number(ev.startDate ?? ev.start?.getTime?.() ?? 0),
+            endDate: Number(ev.endDate ?? ev.end?.getTime?.() ?? 0),
+            isFullday: !!(ev.allDay || ev.fullDay || ev.isFullday),
+            calendar: ev.calendar || ev.calendarName || "calendar"
+          }))
+        : [];
+      this.eventPool.set("core", norm);
+      if (this._ready) this.updateDom();
+    }
   }
 });
