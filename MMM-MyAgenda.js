@@ -87,6 +87,11 @@ Module.register("MMM-MyAgenda", {
     ];
   },
 
+  // Ensure the header uses the module's config header by default.
+  getHeader() {
+    return this.config.header || this.data?.header || this.name;
+  },
+
   /***************************************************************
    * Utility helpers
    ***************************************************************/
