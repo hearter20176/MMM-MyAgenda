@@ -6,7 +6,10 @@
   "author": "Harry Arter & ChatGPT (GPT-5)",
   "license": "MIT",
   "dependencies": {
+    "boxicons": "^2.1.4",
+    "fontawesome-free": "^1.0.4",
     "ical": "^0.8.0",
+    "iconoir": "^7.11.0",
     "node-fetch": "^3.3.2"
   }
 }
