@@ -281,7 +281,7 @@ Module.register("MMM-MyAgenda", {
     if (Array.isArray(events)) {
       const count = events.length || 1;
       // Shrink fonts when many events are displayed to keep the card within 470px.
-      const scale = Math.max(0.7, Math.min(1, 12 / count));
+      const scale = Math.max(0.6, Math.min(1, 10 / count));
       base.style.setProperty("--myag-font-scale", scale.toFixed(2));
     }
     if (!events.length) {
