@@ -55,38 +55,20 @@ module.exports = NodeHelper.create({
   /*************************************************************
    * HTTPS ICS downloader (MagicMirror-safe)
    *************************************************************/
-  fetchICS(url, depth = 0) {
+  fetchICS(url) {
     return new Promise((resolve, reject) => {
-      if (depth > 5) {
-        reject("Too many redirects");
-        return;
-      }
+      https
+        .get(url, (res) => {
+          if (res.statusCode !== 200) {
+            reject(`HTTP ${res.statusCode}`);
+            return;
+          }
 
-      const client = url.startsWith("http:") ? require("http") : https;
-      const req = client.get(url, (res) => {
-        // Follow redirects (Canvas and some hosts use 302/301)
-        if (
-          res.statusCode >= 300 &&
-          res.statusCode < 400 &&
-          res.headers.location
-        ) {
-          const nextUrl = new URL(res.headers.location, url).toString();
-          res.resume(); // discard data before following redirect
-          resolve(this.fetchICS(nextUrl, depth + 1));
-          return;
-        }
-
-        if (res.statusCode !== 200) {
-          reject(`HTTP ${res.statusCode}`);
-          return;
-        }
-
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => resolve(data));
-      });
-
-      req.on("error", (err) => reject(err));
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => resolve(data));
+        })
+        .on("error", (err) => reject(err));
     });
   },
 
