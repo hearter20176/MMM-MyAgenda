@@ -184,6 +184,27 @@ Module.register("MMM-MyAgenda", {
     return "";
   },
 
+  _resolveColor(originalTitle, calendarName, iconColor) {
+    const cfg = this.config;
+    const lower = (originalTitle || "").toLowerCase();
+
+    let color = iconColor || "#9ca3af";
+
+    if (calendarName && cfg.calendarColors?.[calendarName]) {
+      color = cfg.calendarColors[calendarName];
+    }
+
+    if (cfg.keywordColors) {
+      for (const kw in cfg.keywordColors) {
+        if (lower.includes(kw.toLowerCase())) {
+          return cfg.keywordColors[kw];
+        }
+      }
+    }
+
+    return color;
+  },
+
   /***************************************************************
    * Event Retrieval / Grouping
    ***************************************************************/
@@ -336,19 +357,12 @@ Module.register("MMM-MyAgenda", {
         }
 
         const iconObj = this.getIconAndColor(originalTitle);
-
-        // determine color (keywordColors > calendarColors > icon fallback)
-        let finalColor = iconObj.color || "#9ca3af";
         const calName = ev.calendar || ev.calendarName;
-        if (calName && cfg.calendarColors?.[calName]) {
-          finalColor = cfg.calendarColors[calName];
-        }
-        for (const kw in cfg.keywordColors) {
-          if (originalTitle.toLowerCase().includes(kw.toLowerCase())) {
-            finalColor = cfg.keywordColors[kw];
-            break;
-          }
-        }
+        const finalColor = this._resolveColor(
+          originalTitle,
+          calName,
+          iconObj.color
+        );
 
         const eventEl = document.createElement("div");
         eventEl.className = "myag-event";
