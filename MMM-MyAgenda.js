@@ -11,6 +11,7 @@ Module.register("MMM-MyAgenda", {
     numDays: 5,
 
     // appearance
+    maxWidth: 420, // px; lower it when two agendas share a row (e.g. top_center + top_right)
     maxTitleLength: 0,
     wrapEventTitles: true,
     showDescription: false,
@@ -262,6 +263,7 @@ Module.register("MMM-MyAgenda", {
 
     const card = document.createElement("div");
     card.className = "glass-card raised-edge";
+    if (Number(this.config.maxWidth) > 0) card.style.maxWidth = `${Number(this.config.maxWidth)}px`;
     base.appendChild(card);
 
     const header = document.createElement("div");

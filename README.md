@@ -203,6 +203,11 @@ The ```filterText``` option strips phrases from titles, not events:
 "Private: John's Birthday" → "John's Birthday"
 ```
 
+### Width
+
+```maxWidth``` (default `420`) caps the card width in pixels. Lower it when two agendas share a
+row, e.g. `maxWidth: 320` for `top_center` + `top_right` on a 1080px-wide portrait display.
+
 ### Event Filtering
 
 The ```excludeText``` option hides whole events whose title contains any of the
