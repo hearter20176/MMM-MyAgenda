@@ -55,20 +55,36 @@ module.exports = NodeHelper.create({
   /*************************************************************
    * HTTPS ICS downloader (MagicMirror-safe)
    *************************************************************/
-  fetchICS(url) {
+  fetchICS(url, redirectsLeft = 3) {
+    // Canvas (behind CloudFront) answers 403 "not a valid user agent" to requests
+    // without a User-Agent, so always send one. Also follow redirects and time out.
+    const target = String(url).replace(/^webcal:\/\//i, "https://");
     return new Promise((resolve, reject) => {
-      https
-        .get(url, (res) => {
+      const req = https.get(
+        target,
+        {
+          headers: { "User-Agent": "MagicMirror MMM-MyAgenda", Accept: "text/calendar, */*" },
+          timeout: 30000
+        },
+        (res) => {
+          if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirectsLeft > 0) {
+            res.resume();
+            resolve(this.fetchICS(new URL(res.headers.location, target).toString(), redirectsLeft - 1));
+            return;
+          }
           if (res.statusCode !== 200) {
-            reject(`HTTP ${res.statusCode}`);
+            res.resume();
+            reject(new Error(`HTTP ${res.statusCode}`));
             return;
           }
 
           let data = "";
           res.on("data", (chunk) => (data += chunk));
           res.on("end", () => resolve(data));
-        })
-        .on("error", (err) => reject(err));
+        }
+      );
+      req.on("timeout", () => req.destroy(new Error("timed out after 30s")));
+      req.on("error", (err) => reject(err));
     });
   },
 
@@ -130,12 +146,16 @@ module.exports = NodeHelper.create({
         }
       });
 
+      console.log(`[MMM-MyAgenda] ${name}: ${events.length} events`);
+
       // send data back to front-end
       this.sendSocketNotification("MYAG_ICS_EVENTS", {
         sourceName: name,
         events
       });
     } catch (err) {
+      // Log server-side too; the frontend only reports errors in the browser console.
+      console.error(`[MMM-MyAgenda] ${name}: fetch failed: ${err.message || err}`);
       this.sendSocketNotification("MYAG_ICS_ERROR", {
         sourceName: name,
         error: err.toString()

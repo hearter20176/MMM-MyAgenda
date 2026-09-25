@@ -17,7 +17,11 @@ Module.register("MMM-MyAgenda", {
     maxDescriptionLength: 80,
 
     // filtering
+    // filterText: fragments removed from displayed titles (e.g. a course tag).
     filterText: [],
+    // excludeText: events whose title contains any of these fragments are hidden
+    // (case-insensitive), e.g. to split a combined guardian feed per child.
+    excludeText: [],
 
     // mapping + colors
     keywordColors: {},
@@ -191,6 +195,14 @@ Module.register("MMM-MyAgenda", {
     let all = [];
     for (const [, arr] of this.eventPool.entries()) {
       if (Array.isArray(arr)) all = all.concat(arr);
+    }
+
+    const excluded = this._getFilterList(this.config.excludeText).map((s) => s.toLowerCase());
+    if (excluded.length) {
+      all = all.filter((ev) => {
+        const title = (ev.title || "").toLowerCase();
+        return !excluded.some((frag) => title.includes(frag));
+      });
     }
 
     if (this.config.removeDuplicates) {
@@ -441,6 +453,13 @@ Module.register("MMM-MyAgenda", {
    * Socket / module notifications
    ***************************************************************/
   socketNotificationReceived(notification, payload) {
+    // node_helper notifications reach every MMM-MyAgenda instance; only accept
+    // calendars configured on this one.
+    if ((notification === "MYAG_ICS_EVENTS" || notification === "MYAG_ICS_ERROR") &&
+        !(this.config.calendars || []).some((c) => c && c.name === payload?.sourceName)) {
+      return;
+    }
+
     if (notification === "MYAG_ICS_EVENTS") {
       if (!payload?.sourceName) return;
       this.isLoading = false;

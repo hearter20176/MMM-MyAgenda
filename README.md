@@ -203,6 +203,24 @@ The ```filterText``` option strips phrases from titles, not events:
 "Private: John's Birthday" → "John's Birthday"
 ```
 
+### Event Filtering
+
+The ```excludeText``` option hides whole events whose title contains any of the
+listed fragments (case-insensitive). Useful when one feed covers several people, such
+as a Canvas guardian feed shared by two children:
+```js
+// Panel for the 6th grader: hide the 8th grader's courses
+excludeText: ["[08 ", "[Pre-Algebra", "[Spanish"],
+filterText: ["[06 English]", "[06 Math-Hauser]"]  // then strip course tags from titles
+```
+
+### Fetching Notes
+
+ICS feeds are fetched with a `User-Agent` header (Canvas/Instructure rejects requests
+without one with HTTP 403), `webcal://` URLs are converted to `https://`, redirects are
+followed, and each fetch logs `<calendar>: N events` or `fetch failed: <reason>` to the
+MagicMirror log.
+
 ---
 
 ## 🎨 Styling
