@@ -12,6 +12,9 @@ Module.register("MMM-MyAgenda", {
 
     // appearance
     maxWidth: 420, // px; lower it when two agendas share a row (e.g. top_center + top_right)
+    // Show at most this many upcoming events (0 = all), with a "+N more" line. Keeps the
+    // type size consistent instead of shrinking it to fit long lists.
+    maxEvents: 0,
     maxTitleLength: 0,
     wrapEventTitles: true,
     showDescription: false,
@@ -291,7 +294,10 @@ Module.register("MMM-MyAgenda", {
       return base;
     }
 
-    const events = this.getAllEvents();
+    const allEvents = this.getAllEvents();
+    const maxEvents = Number(this.config.maxEvents) || 0;
+    const events = maxEvents > 0 ? allEvents.slice(0, maxEvents) : allEvents;
+    const hiddenCount = allEvents.length - events.length;
     if (Array.isArray(events)) {
       const count = events.length || 1;
       // Shrink fonts when many events are displayed to keep the card within 470px.
@@ -447,6 +453,13 @@ Module.register("MMM-MyAgenda", {
 
       body.appendChild(section);
     });
+
+    if (hiddenCount > 0) {
+      const more = document.createElement("div");
+      more.className = "myag-more";
+      more.innerText = `+${hiddenCount} more`;
+      body.appendChild(more);
+    }
 
     return base;
   },
