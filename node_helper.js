@@ -10,6 +10,16 @@
 const NodeHelper = require("node_helper");
 const ical = require("node-ical");
 const https = require("https");
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+
+const CACHE_DIR = path.join(__dirname, "cache");
+const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const RETRY_DELAYS_MS = [5000, 15000];
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const cacheFile = (url) =>
+  path.join(CACHE_DIR, crypto.createHash("sha256").update(url).digest("hex").slice(0, 16) + ".ics");
 
 module.exports = NodeHelper.create({
   start() {
@@ -91,9 +101,46 @@ module.exports = NodeHelper.create({
   /*************************************************************
    * Parse one calendar + RRULE expansion
    *************************************************************/
+  /*************************************************************
+   * Fetch with retries; on failure fall back to the last good copy on disk
+   * (up to 7 days old) so a network hiccup doesn't empty the agenda.
+   *************************************************************/
+  async fetchICSResilient(name, url) {
+    let lastErr;
+    for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+      if (attempt) await sleep(RETRY_DELAYS_MS[attempt - 1]);
+      try {
+        const text = await this.fetchICS(url);
+        if (!text || text.indexOf("BEGIN:VCALENDAR") === -1) throw new Error("Invalid ICS content");
+        try {
+          fs.mkdirSync(CACHE_DIR, { recursive: true });
+          fs.writeFileSync(cacheFile(url), text);
+        } catch (err) {
+          // cache is best-effort
+        }
+        return text;
+      } catch (err) {
+        lastErr = err;
+        if (/^HTTP 40[13]$/.test(err.message || "")) break; // auth failures are not transient
+      }
+    }
+    try {
+      const file = cacheFile(url);
+      const ageMs = Date.now() - fs.statSync(file).mtimeMs;
+      if (ageMs <= CACHE_MAX_AGE_MS) {
+        console.warn(`[MMM-MyAgenda] ${name}: fetch failed (${lastErr.message || lastErr}); ` +
+          `using cached copy from ${Math.round(ageMs / 60000)} min ago`);
+        return fs.readFileSync(file, "utf8");
+      }
+    } catch (err) {
+      // no usable cache
+    }
+    throw lastErr;
+  },
+
   async fetchCalendar(name, url) {
     try {
-      const rawICS = await this.fetchICS(url);
+      const rawICS = await this.fetchICSResilient(name, url);
       const parsed = ical.parseICS(rawICS);
 
       const events = [];
