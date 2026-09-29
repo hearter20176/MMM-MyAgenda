@@ -1,29 +1,34 @@
 /* node_helper.js — MMM-MyAgenda
- * Fully fixed version:
- *   ✔ No fetch()
- *   ✔ HTTPS ICS download
- *   ✔ node-ical recurrence
- *   ✔ Full-day detection
- *   ✔ Timezone-safe
+ * Fetches configured ICS feeds server-side, expands recurring events
+ * (honouring EXDATE and RECURRENCE-ID), and sends results to the front end.
  */
 
-const NodeHelper = require("node_helper");
-const ical = require("node-ical");
-const https = require("https");
-const fs = require("fs");
-const path = require("path");
 const crypto = require("crypto");
+const fs = require("fs");
+const https = require("https");
+const path = require("path");
+const Log = require("logger");
+const ical = require("node-ical");
+const NodeHelper = require("node_helper");
+const { expandCalendar } = require("./lib/ics-expand");
+const { FetchLoopManager } = require("./lib/fetch-loop");
+const { computeFetchWindow } = require("./lib/fetch-window");
 
 const CACHE_DIR = path.join(__dirname, "cache");
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const RETRY_DELAYS_MS = [5000, 15000];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const cacheFile = (url) =>
-  path.join(CACHE_DIR, crypto.createHash("sha256").update(url).digest("hex").slice(0, 16) + ".ics");
+  path.join(CACHE_DIR, `${crypto.createHash("sha256").update(url).digest("hex").slice(0, 16)}.ics`);
 
 module.exports = NodeHelper.create({
   start() {
-    console.log("[MMM-MyAgenda] node_helper started");
+    Log.log("[MMM-MyAgenda] node_helper started");
+    this.fetchLoops = new FetchLoopManager();
+  },
+
+  stop() {
+    if (this.fetchLoops) this.fetchLoops.stopAll();
   },
 
   socketNotificationReceived(notification, payload) {
@@ -33,26 +38,26 @@ module.exports = NodeHelper.create({
   },
 
   /*************************************************************
-   * Loop calendars forever at config.interval
+   * Loop calendars at config.interval. Re-requesting the same
+   * calendar set (module re-start, browser reload, etc.) reuses
+   * and refreshes the existing timer instead of stacking a new one.
    *************************************************************/
   beginFetchLoop(config) {
     if (!config || !Array.isArray(config.calendars)) return;
-
-    // fetch immediately
-    this.fetchAll(config);
-
-    // schedule repeating loop
-    const interval = config.interval || 5 * 60 * 1000;
-    setInterval(() => this.fetchAll(config), interval);
+    this.fetchLoops.start(config, (cfg) => this.fetchAll(cfg));
   },
 
   /*************************************************************
-   * Fetch each calendar
+   * Fetch each calendar. The recurrence-expansion window follows the
+   * front end's display window (startOffsetDays, which may be negative,
+   * through numDays), with a 60-day floor so a short display window
+   * doesn't starve the client-side cache.
    *************************************************************/
   async fetchAll(config) {
+    const { windowStart, windowEnd } = computeFetchWindow(config);
     for (const c of config.calendars) {
       try {
-        await this.fetchCalendar(c.name, c.url);
+        await this.fetchCalendar(c.name, c.url, windowStart, windowEnd, !!config.debug);
       } catch (err) {
         this.sendSocketNotification("MYAG_ICS_ERROR", {
           sourceName: c.name,
@@ -99,11 +104,10 @@ module.exports = NodeHelper.create({
   },
 
   /*************************************************************
-   * Parse one calendar + RRULE expansion
-   *************************************************************/
-  /*************************************************************
    * Fetch with retries; on failure fall back to the last good copy on disk
-   * (up to 7 days old) so a network hiccup doesn't empty the agenda.
+   * (up to 7 days old) so a network hiccup doesn't empty the agenda. The
+   * caller is told when the result is a stale fallback so the front end can
+   * say so instead of silently showing old data as current.
    *************************************************************/
   async fetchICSResilient(name, url) {
     let lastErr;
@@ -117,8 +121,9 @@ module.exports = NodeHelper.create({
           fs.writeFileSync(cacheFile(url), text);
         } catch (err) {
           // cache is best-effort
+          Log.debug(`[MMM-MyAgenda] ${name}: could not write cache: ${err.message || err}`);
         }
-        return text;
+        return { text, stale: false, cachedAgeMs: 0 };
       } catch (err) {
         lastErr = err;
         if (/^HTTP 40[13]$/.test(err.message || "")) break; // auth failures are not transient
@@ -128,9 +133,9 @@ module.exports = NodeHelper.create({
       const file = cacheFile(url);
       const ageMs = Date.now() - fs.statSync(file).mtimeMs;
       if (ageMs <= CACHE_MAX_AGE_MS) {
-        console.warn(`[MMM-MyAgenda] ${name}: fetch failed (${lastErr.message || lastErr}); ` +
+        Log.warn(`[MMM-MyAgenda] ${name}: fetch failed (${lastErr.message || lastErr}); ` +
           `using cached copy from ${Math.round(ageMs / 60000)} min ago`);
-        return fs.readFileSync(file, "utf8");
+        return { text: fs.readFileSync(file, "utf8"), stale: true, cachedAgeMs: ageMs };
       }
     } catch (err) {
       // no usable cache
@@ -138,101 +143,33 @@ module.exports = NodeHelper.create({
     throw lastErr;
   },
 
-  async fetchCalendar(name, url) {
+  async fetchCalendar(name, url, windowStart, windowEnd, debug) {
     try {
-      const rawICS = await this.fetchICSResilient(name, url);
+      const { text: rawICS, stale, cachedAgeMs } = await this.fetchICSResilient(name, url);
       const parsed = ical.parseICS(rawICS);
 
-      const events = [];
+      const events = expandCalendar(parsed, name, windowStart, windowEnd);
 
-      Object.values(parsed).forEach((ev) => {
-        if (!ev || ev.type !== "VEVENT") return;
+      // Per-calendar counts fire every fetch (every `interval`, default 5
+      // min): only log them when debug is on, same as the front end's
+      // debug-gated logging.
+      if (debug) {
+        Log.log(`[MMM-MyAgenda] ${name}: ${events.length} events${stale ? " (stale cache)" : ""}`);
+      }
 
-        const start = ev.start ? new Date(ev.start) : null;
-        const end = ev.end ? new Date(ev.end) : null;
-        if (!start || !end) return;
-
-        const isRecurring = !!ev.rrule;
-
-        /************************************
-         * Recurring event
-         ************************************/
-        if (isRecurring) {
-          const now = new Date();
-          const future = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 60); // 60 days
-
-          const duration = end - start;
-          const dates = ev.rrule.between(now, future);
-
-          dates.forEach((dt) => {
-            // node-ical may not localize RRULE instances: fix here
-            const instStart = new Date(dt);
-            const instEnd = new Date(instStart.getTime() + duration);
-
-            events.push({
-              title: ev.summary || "",
-              description: ev.description || "",
-              startDate: instStart.getTime(),
-              endDate: instEnd.getTime(),
-              isFullday: this.detectFullDay(instStart, instEnd, ev),
-              calendar: name
-            });
-          });
-        } else {
-          /************************************
-           * One-time event
-           ************************************/
-          events.push({
-            title: ev.summary || "",
-            description: ev.description || "",
-            startDate: start.getTime(),
-            endDate: end.getTime(),
-            isFullday: this.detectFullDay(start, end, ev),
-            calendar: name
-          });
-        }
-      });
-
-      console.log(`[MMM-MyAgenda] ${name}: ${events.length} events`);
-
-      // send data back to front-end
       this.sendSocketNotification("MYAG_ICS_EVENTS", {
         sourceName: name,
-        events
+        events,
+        stale: !!stale,
+        cachedAgeMs: cachedAgeMs || 0
       });
     } catch (err) {
-      // Log server-side too; the frontend only reports errors in the browser console.
-      console.error(`[MMM-MyAgenda] ${name}: fetch failed: ${err.message || err}`);
+      // Log server-side too; the frontend surfaces this via MYAG_ICS_ERROR.
+      Log.error(`[MMM-MyAgenda] ${name}: fetch failed: ${err.message || err}`);
       this.sendSocketNotification("MYAG_ICS_ERROR", {
         sourceName: name,
         error: err.toString()
       });
     }
-  },
-
-  /*************************************************************
-   * Full-day determination logic
-   *************************************************************/
-  detectFullDay(start, end, icalEvent) {
-    if (!start || !end) return false;
-
-    // 1) DATE-type events (no specific time)
-    if (icalEvent.datetype === "date" || icalEvent.datetype === "DATE")
-      return true;
-
-    // node-ical sometimes flags all-day via "dateOnly"
-    if (icalEvent.dtstamp?.dateOnly) return true;
-
-    // 2) Same timestamp → treat as full-day
-    if (start.getTime() === end.getTime()) return true;
-
-    // 3) Duration approx 24 hours
-    const diffH = (end - start) / 3600000;
-    if (diffH >= 23.5 && diffH <= 24.5) {
-      const h = start.getHours();
-      if (h === 0 || h === 1 || h === 2 || h === 3) return true;
-    }
-
-    return false;
   }
 });

@@ -144,3 +144,8 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 # Last-good ICS copies (calendar data)
 cache/
+
+# Real calendar exports and scratch/debug files must never be committed.
+*.ics
+repro.js
+desktop.ini

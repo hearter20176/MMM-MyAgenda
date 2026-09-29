@@ -4,7 +4,7 @@
 
 .MMM-MyAgenda {
   display: flex;
-  flex-direction: right;
+  flex-direction: row;
   align-items: center;
   color: #e9edf5;
   font-family: "SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", -apple-system, system-ui, sans-serif;
@@ -15,8 +15,13 @@
 }
 
 /* ---------- Liquid Glass Card (matches MMM-AmbientWeather) ---------- */
-.glass-card {
+/* Scoped under .MMM-MyAgenda so these class/keyframe names don't leak onto
+   other modules that happen to share the same "glass-card" look
+   (e.g. MMM-AmbientWeather). */
+.MMM-MyAgenda .glass-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   min-width: 260px;
   max-width: 420px;
@@ -37,23 +42,23 @@
   color: #e9edf5;
 }
 
-.glass-card > * {
+.MMM-MyAgenda .glass-card > * {
   position: relative;
   z-index: 1;
 }
 
-.glass-card::before {
+.MMM-MyAgenda .glass-card::before {
   content: "";
   position: absolute;
   inset: -20%;
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.35));
   transform: translateX(-60%) rotate(8deg);
-  animation: glass-shimmer 16s linear infinite;
+  animation: myag-shimmer 16s linear infinite;
   opacity: 0.32;
   pointer-events: none;
 }
 
-.glass-card::after {
+.MMM-MyAgenda .glass-card::after {
   content: "";
   position: absolute;
   width: 320px;
@@ -66,20 +71,20 @@
   filter: blur(38px);
   opacity: 0.45;
   pointer-events: none;
-  animation: floatFade 18s ease-in-out infinite alternate;
+  animation: myag-float-fade 18s ease-in-out infinite alternate;
 }
 
-.raised-edge {
+.MMM-MyAgenda .raised-edge {
   border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-@keyframes floatFade {
+@keyframes myag-float-fade {
   0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
   100% { transform: translate3d(8px, -6px, 0) scale(1.05); opacity: 0.38; }
 }
 
-@keyframes glass-shimmer {
+@keyframes myag-shimmer {
   0% { transform: translateX(-60%) rotate(8deg); opacity: 0.32; }
   50% { transform: translateX(30%) rotate(8deg); opacity: 0.14; }
   100% { transform: translateX(120%) rotate(8deg); opacity: 0.32; }
@@ -107,8 +112,14 @@
 }
 
 .myag-agenda {
-  max-height: none;
-  overflow: visible;
+  /* Flex-shrinks within the card's column layout so this box (not the
+     card as a whole) is the thing that clips; "+N more" lives outside it
+     as a sibling flex item so it's never clipped along with the rows it's
+     counting. Rows that would overflow this box are removed by
+     _trimToFit() in MMM-MyAgenda.js and rolled into "+N more". */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
   padding-right: 2px;
 }
 
@@ -126,14 +137,32 @@
   display: inline-block;
   width: 12px;
   height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.26);
-  border-top-color: rgba(255, 255, 255, 0.9);
+  /* currentcolor-based so the spinner stays visible against day-mode themes
+     where the card text color is dark rather than white. */
+  border: 2px solid color-mix(in srgb, currentcolor 26%, transparent);
+  border-top-color: currentcolor;
   border-radius: 50%;
   animation: myag-spin 0.7s linear infinite;
 }
 
 @keyframes myag-spin {
   to { transform: rotate(360deg); }
+}
+
+/* ---------- Error / warning states ---------- */
+.myag-error {
+  font-size: calc(0.78rem * var(--myag-font-scale));
+  text-align: center;
+  color: #fca5a5;
+  padding: 8px 4px;
+}
+
+.myag-warn {
+  font-size: calc(0.68rem * var(--myag-font-scale));
+  text-align: center;
+  color: #fbbf24;
+  opacity: 0.9;
+  margin-bottom: 4px;
 }
 
 /* ---------- Day Sections ---------- */
@@ -163,6 +192,7 @@
     0 6px 12px rgba(0, 0, 0, 0.18),
     inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   transition: transform 0.15s ease;
+  animation: myag-fade-in 0.45s ease-out;
 }
 
 .myag-event:hover {
@@ -209,26 +239,27 @@
   margin-top: 1px;
 }
 
-.myag-right {
-  font-size: calc(0.8rem * var(--myag-font-scale));
+/* Sub-line under the title instead of a separate nowrap column, so the
+   title gets the row's full width instead of losing ~156px to a time
+   string. */
+.myag-time {
+  font-size: calc(0.7rem * var(--myag-font-scale));
   font-weight: 600;
-  color: rgba(233, 237, 245, 0.8);
-  padding-left: 6px;
-  white-space: nowrap;
+  color: rgba(233, 237, 245, 0.72);
+  margin-top: 1px;
 }
 
 /* fade-in rows */
-.myag-event {
-  animation: fadeIn 0.45s ease-out;
-}
-
-@keyframes fadeIn {
+@keyframes myag-fade-in {
   from { opacity: 0; transform: translateY(3px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* "+N more" line when maxEvents trims the list */
+/* "+N more" line when maxEvents (or the post-render fit trim) drops rows.
+   flex: none plus living outside .myag-agenda keeps it out of the clipped
+   scroll area, so it's never itself hidden along with the rows it counts. */
 .myag-more {
+  flex: none;
   margin-top: 6px;
   font-size: calc(0.72rem * var(--myag-font-scale, 1));
   opacity: 0.7;

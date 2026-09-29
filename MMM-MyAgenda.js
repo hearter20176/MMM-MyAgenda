@@ -1,8 +1,9 @@
-/* MMM-MyAgenda.js — Full merged and corrected version */
+/* MMM-MyAgenda.js — renders a multi-day agenda from ICS feeds or the core calendar module. */
+/* global MyAgendaState */
 
 Module.register("MMM-MyAgenda", {
   defaults: {
-    header: "Homework",
+    header: "Agenda",
     useCalendarModule: false,
     calendars: [],
 
@@ -12,9 +13,11 @@ Module.register("MMM-MyAgenda", {
 
     // appearance
     maxWidth: 420, // px; lower it when two agendas share a row (e.g. top_center + top_right)
-    // Show at most this many upcoming events (0 = all), with a "+N more" line. Keeps the
-    // type size consistent instead of shrinking it to fit long lists.
-    maxEvents: 0,
+    // Cap on displayed events (0 = all), with a "+N more" line for the rest. Text still
+    // scales down as the list grows (see --myag-font-scale below); on top of that, any
+    // rows that still don't fit the card's height are trimmed post-render and rolled
+    // into "+N more" too (see _trimToFit).
+    maxEvents: 12,
     maxTitleLength: 0,
     wrapEventTitles: true,
     showDescription: false,
@@ -63,21 +66,38 @@ Module.register("MMM-MyAgenda", {
 
     Log.info(`[${this.name}] Starting`);
     this.eventPool = new Map();
+    // Per-source fetch status, keyed by calendar/source name:
+    // { error: string } on failure, { stale: true, cachedAgeMs } when a
+    // resilient fallback to cached data was used. See lib/agenda-state.js.
+    this.errors = new Map();
+    this.configError = null;
+    this.waitingForCalendarModuleTimer = null;
 
-    const waitingForIcs =
+    const hasIcsCalendars =
       !this.config.useCalendarModule &&
       Array.isArray(this.config.calendars) &&
       this.config.calendars.length > 0;
     const waitingForCalendarModule = !!this.config.useCalendarModule;
 
-    this.isLoading = waitingForIcs || waitingForCalendarModule;
+    if (!hasIcsCalendars && !waitingForCalendarModule) {
+      this.configError = "No calendars configured (set calendars or useCalendarModule)";
+      this.isLoading = false;
+    } else {
+      this.isLoading = true;
+    }
 
-    if (
-      !this.config.useCalendarModule &&
-      Array.isArray(this.config.calendars) &&
-      this.config.calendars.length
-    ) {
+    if (hasIcsCalendars) {
       this.sendSocketNotification("MYAG_I_C_FETCH", this.config);
+    }
+
+    if (waitingForCalendarModule) {
+      this.waitingForCalendarModuleTimer = setTimeout(() => {
+        if (this.isLoading) {
+          this.isLoading = false;
+          this.configError = "Waiting for CALENDAR_EVENTS from the calendar module";
+          if (this._ready) this.updateDom();
+        }
+      }, 60000);
     }
 
     setTimeout(() => {
@@ -89,10 +109,14 @@ Module.register("MMM-MyAgenda", {
   getStyles() {
     return [
       this.file("MMM-MyAgenda.css"),
-      this.file("node_modules/fontawesome-free/css/all.min.css"),
+      "font-awesome.css",
       this.file("node_modules/boxicons/css/boxicons.min.css"),
       this.file("node_modules/iconoir/css/iconoir.css")
     ];
+  },
+
+  getScripts() {
+    return [this.file("lib/agenda-state.js")];
   },
 
   /***************************************************************
@@ -170,26 +194,7 @@ Module.register("MMM-MyAgenda", {
     }
 
     // default fallback
-    return { iconType: "emoji", icon: "🗓️", color: "#9ca3af" };
-  },
-
-  _mixColor(hexOrRgba, alpha = 0.12) {
-    if (!hexOrRgba) return "";
-    const s = String(hexOrRgba).trim();
-    if (s.startsWith("rgba")) {
-      return s.replace(/rgba\(([^)]+)\)/, (m, inside) => {
-        const parts = inside.split(",").map((p) => p.trim());
-        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
-      });
-    }
-    const hex = s.replace("#", "");
-    if (hex.length === 6) {
-      const r = parseInt(hex.slice(0, 2), 16);
-      const g = parseInt(hex.slice(2, 4), 16);
-      const b = parseInt(hex.slice(4, 6), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-    return "";
+    return { iconType: "class", iconClass: "fa-regular fa-calendar", color: "#9ca3af" };
   },
 
   /***************************************************************
@@ -225,7 +230,9 @@ Module.register("MMM-MyAgenda", {
     start.setHours(0, 0, 0, 0);
 
     const end = new Date(start.getTime());
-    end.setDate(end.getDate() + Number(this.config.numDays));
+    // numDays is inclusive of the start day, so the window covers
+    // [start, start + numDays - 1].
+    end.setDate(end.getDate() + Number(this.config.numDays) - 1);
     end.setHours(23, 59, 59, 999);
 
     const filtered = all.filter((ev) => {
@@ -278,6 +285,21 @@ Module.register("MMM-MyAgenda", {
     body.className = "myag-agenda";
     card.appendChild(body);
 
+    // Lives outside .myag-agenda (which clips) so "+N more" is never itself
+    // clipped away along with the rows it's counting.
+    const moreEl = document.createElement("div");
+    moreEl.className = "myag-more";
+    moreEl.style.display = "none";
+    card.appendChild(moreEl);
+
+    if (this.configError) {
+      const err = document.createElement("div");
+      err.className = "myag-error";
+      err.innerText = this.configError;
+      body.appendChild(err);
+      return base;
+    }
+
     if (this.isLoading) {
       const loading = document.createElement("div");
       loading.className = "myag-loading";
@@ -294,7 +316,45 @@ Module.register("MMM-MyAgenda", {
       return base;
     }
 
+    // Wrap everything data-dependent: a bad/partial payload must never crash
+    // rendering on an unattended mirror.
+    try {
+      this._renderAgendaBody(body, moreEl, base);
+    } catch (err) {
+      Log.error(`[${this.name}] getDom render failed: ${err.message || err}`);
+      const errBox = document.createElement("div");
+      errBox.className = "myag-error";
+      errBox.innerText = "Agenda display error";
+      body.appendChild(errBox);
+    }
+
+    return base;
+  },
+
+  // Split out from getDom so the try/catch above covers all data-dependent
+  // rendering (event list, grouping, icons, status lines) without having to
+  // guard every call site individually.
+  _renderAgendaBody(body, moreEl, base) {
+    const cfg = this.config;
     const allEvents = this.getAllEvents();
+
+    let status = { showError: false, errorLines: [], warnLines: [] };
+    if (typeof MyAgendaState !== "undefined") {
+      status = MyAgendaState.buildStatusLines(this.errors, allEvents.length > 0);
+    }
+
+    if (status.showError) {
+      const errBox = document.createElement("div");
+      errBox.className = "myag-error";
+      status.errorLines.forEach((line) => {
+        const p = document.createElement("div");
+        p.innerText = line;
+        errBox.appendChild(p);
+      });
+      body.appendChild(errBox);
+      return;
+    }
+
     const maxEvents = Number(this.config.maxEvents) || 0;
     const events = maxEvents > 0 ? allEvents.slice(0, maxEvents) : allEvents;
     const hiddenCount = allEvents.length - events.length;
@@ -304,12 +364,24 @@ Module.register("MMM-MyAgenda", {
       const scale = Math.max(0.6, Math.min(1, 10 / count));
       base.style.setProperty("--myag-font-scale", scale.toFixed(2));
     }
+
+    if (status.warnLines.length) {
+      const warnBox = document.createElement("div");
+      warnBox.className = "myag-warn";
+      status.warnLines.forEach((line) => {
+        const p = document.createElement("div");
+        p.innerText = line;
+        warnBox.appendChild(p);
+      });
+      body.appendChild(warnBox);
+    }
+
     if (!events.length) {
       const empty = document.createElement("div");
       empty.className = "myag-empty";
       empty.innerText = "No upcoming events";
       body.appendChild(empty);
-      return base;
+      return;
     }
 
     const grouped = this.groupEventsByDay(events);
@@ -358,7 +430,7 @@ Module.register("MMM-MyAgenda", {
           displayedTitle.length > cfg.maxTitleLength
         ) {
           displayedTitle =
-            displayedTitle.slice(0, cfg.maxTitleLength - 1) + "…";
+            `${displayedTitle.slice(0, cfg.maxTitleLength - 1)}…`;
         }
 
         const iconObj = this.getIconAndColor(originalTitle);
@@ -381,9 +453,6 @@ Module.register("MMM-MyAgenda", {
         eventEl.style.borderLeft = `4px solid ${finalColor}`;
 
         const isFD = ev.isFullday || this._heuristicFullDay(ev);
-        if (!isFD && finalColor && finalColor.startsWith("#")) {
-          eventEl.style.background = this._mixColor(finalColor, 0.1);
-        }
 
         const left = document.createElement("div");
         left.className = "myag-left";
@@ -421,7 +490,7 @@ Module.register("MMM-MyAgenda", {
             cfg.maxDescriptionLength > 0 &&
             desc.length > cfg.maxDescriptionLength
           ) {
-            desc = desc.slice(0, cfg.maxDescriptionLength - 1) + "…";
+            desc = `${desc.slice(0, cfg.maxDescriptionLength - 1)}…`;
           }
           const descEl = document.createElement("div");
           descEl.className = "myag-desc";
@@ -429,10 +498,10 @@ Module.register("MMM-MyAgenda", {
           txtWrap.appendChild(descEl);
         }
 
-        left.appendChild(txtWrap);
-        eventEl.appendChild(left);
-
-        // times (if not full-day)
+        // Time as a sub-line under the title, not a separate right-hand
+        // column: a full "08:00 AM–09:00 AM" nowrap column ate ~156px of a
+        // ~294px deployed row, squeezing titles down to a handful of
+        // characters per line.
         if (!isFD) {
           const s = new Date(ev.startDate);
           const e = new Date(ev.endDate);
@@ -440,13 +509,16 @@ Module.register("MMM-MyAgenda", {
           const durH = (e - s) / 3600000;
           if (!(durH >= 23.5 && durH <= 24.5)) {
             const timeEl = document.createElement("div");
-            timeEl.className = "myag-right";
+            timeEl.className = "myag-time";
             const st = this.formatTime(s);
             const et = this.formatTime(e);
             timeEl.innerText = st && et ? `${st}–${et}` : st;
-            eventEl.appendChild(timeEl);
+            txtWrap.appendChild(timeEl);
           }
         }
+
+        left.appendChild(txtWrap);
+        eventEl.appendChild(left);
 
         section.appendChild(eventEl);
       });
@@ -455,13 +527,99 @@ Module.register("MMM-MyAgenda", {
     });
 
     if (hiddenCount > 0) {
-      const more = document.createElement("div");
-      more.className = "myag-more";
-      more.innerText = `+${hiddenCount} more`;
-      body.appendChild(more);
+      moreEl.innerText = `+${hiddenCount} more`;
+      moreEl.style.display = "";
     }
 
-    return base;
+    this._trimToFit(base, body, moreEl, hiddenCount);
+  },
+
+  // getDom()'s return value isn't attached to the document yet when this
+  // runs (MagicMirror inserts it after getDom() returns), so
+  // getBoundingClientRect() on it would just read zeroes. To measure real
+  // row positions synchronously (no requestAnimationFrame — the caller may
+  // measure the returned DOM immediately, with no extra frame in between),
+  // temporarily mount the module's own subtree off-screen, measure and trim
+  // there, then detach it again before returning it to the caller.
+  //
+  // Removes trailing event rows that don't fit inside the clipped
+  // .myag-agenda box and rolls them into "+N more" instead of letting them
+  // silently clip. Measured against .myag-agenda's own rect (which is <=
+  // the card's, since the card also has a header and "+N more" above/below
+  // it), so anything left standing also fits inside the card.
+  _trimToFit(base, body, moreEl, alreadyHiddenCount) {
+    if (typeof document === "undefined" || !document.body) return;
+
+    let scaffold = null;
+    if (!base.isConnected) {
+      scaffold = document.createElement("div");
+      scaffold.style.cssText = "position:fixed; left:-9999px; top:-9999px; visibility:hidden; pointer-events:none;";
+      scaffold.appendChild(base);
+      document.body.appendChild(scaffold);
+    }
+
+    const wasMoreVisible = moreEl.style.display !== "none";
+    const originalMoreText = moreEl.innerText;
+    let removed = 0;
+
+    try {
+      // "+N more" is a flex sibling of .myag-agenda inside the
+      // capped-height card, so revealing it *after* measuring/trimming
+      // would shrink .myag-agenda and could re-clip the row we just
+      // decided to keep. Reserve its space with a placeholder before the
+      // measurement below, so the container rect we trim against already
+      // accounts for it; the real count (or hiding it again, if nothing
+      // ended up trimmed) is fixed up in `finally`.
+      if (!wasMoreVisible) {
+        moreEl.innerText = "+0 more";
+        moreEl.style.display = "";
+      }
+
+      const containerRect = body.getBoundingClientRect();
+      if (!containerRect || containerRect.height <= 0) return;
+
+      // Read every row's position first, then remove the trailing
+      // overflowing ones in a second pass, so trimming doesn't force a
+      // synchronous reflow per removed row.
+      const rows = Array.from(body.querySelectorAll(".myag-event"));
+      const rects = rows.map((row) => row.getBoundingClientRect());
+
+      let firstOverflowIndex = rows.length;
+      for (let i = rows.length - 1; i >= 0; i--) {
+        if (rects[i].bottom > containerRect.bottom - 1) {
+          firstOverflowIndex = i;
+        } else {
+          // Rows are in top-to-bottom document order with no overlap, so
+          // once one fits, everything above it fits too.
+          break;
+        }
+      }
+
+      rows.slice(firstOverflowIndex).forEach((row) => row.remove());
+      removed = rows.length - firstOverflowIndex;
+
+      if (removed > 0) {
+        body.querySelectorAll(".myag-day-section").forEach((section) => {
+          if (!section.querySelector(".myag-event")) section.remove();
+        });
+      }
+    } catch (err) {
+      Log.error(`[${this.name}] trim-to-fit failed: ${err.message || err}`);
+    } finally {
+      const total = alreadyHiddenCount + removed;
+      if (total > 0) {
+        moreEl.innerText = `+${total} more`;
+        moreEl.style.display = "";
+      } else if (!wasMoreVisible) {
+        moreEl.innerText = originalMoreText;
+        moreEl.style.display = "none";
+      }
+
+      if (scaffold) {
+        scaffold.removeChild(base);
+        document.body.removeChild(scaffold);
+      }
+    }
   },
 
   /***************************************************************
@@ -497,12 +655,21 @@ Module.register("MMM-MyAgenda", {
         : [];
 
       this.eventPool.set(payload.sourceName, normalized);
+
+      if (payload.stale) {
+        this.errors.set(payload.sourceName, { stale: true, cachedAgeMs: Number(payload.cachedAgeMs) || 0 });
+      } else {
+        this.errors.delete(payload.sourceName);
+      }
+
       if (this._ready) this.updateDom();
     }
 
     if (notification === "MYAG_ICS_ERROR") {
-      Log.error(`[${this.name}] ${payload?.sourceName}: ${payload?.error}`);
+      if (!payload?.sourceName) return;
+      Log.error(`[${this.name}] ${payload.sourceName}: ${payload.error}`);
       this.isLoading = false;
+      this.errors.set(payload.sourceName, { error: payload.error || "unknown error" });
       if (this._ready) this.updateDom();
     }
   },
@@ -510,6 +677,11 @@ Module.register("MMM-MyAgenda", {
   notificationReceived(notification, payload) {
     if (notification === "CALENDAR_EVENTS" && this.config.useCalendarModule) {
       this.isLoading = false;
+      this.configError = null;
+      if (this.waitingForCalendarModuleTimer) {
+        clearTimeout(this.waitingForCalendarModuleTimer);
+        this.waitingForCalendarModuleTimer = null;
+      }
       // Default calendar broadcasts the array directly (not wrapped in { events }). Support both shapes.
       const incomingEvents = Array.isArray(payload) ? payload : payload?.events;
 

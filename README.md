@@ -1,6 +1,11 @@
 # MMM-MyAgenda
 
-Standalone MagicMirror module that renders a multi-day agenda with an **iOS liquid glass** theme, color-coded calendars and custom icons. It supports direct `.ics` parsing via `ical`, smart event grouping, contextual icons, and an elegant frosted-glass UI consistent with **MMM-AmbientWeather**.  
+A MagicMirror module that renders a multi-day agenda list with a liquid-glass
+theme, color-coded calendars, and contextual icons. It can pull events either
+from the core `calendar` module's `CALENDAR_EVENTS` broadcast, or fetch
+`.ics` feeds directly via its own node_helper (using
+[node-ical](https://www.npmjs.com/package/node-ical) for parsing, including
+RRULE recurrence, EXDATE exceptions, and RECURRENCE-ID overrides).
 
 ### Day
 
@@ -9,51 +14,43 @@ Standalone MagicMirror module that renders a multi-day agenda with an **iOS liqu
 ### Night
 
 ![MMM-MyAgenda Dark Theme](docs/myagenda_night.png)
----
-
-## Recent Updates
-
-- Supports legacy `startDayIndex`/`endDayIndex` aliases by mapping them to `startOffsetDays`/`numDays`.
-- Accepts CALENDAR_EVENTS whether sent as a raw array or wrapped in `{ events }`.
-- Optional `debug: true` logs counts of events received from ICS sources and CALENDAR_EVENTS.
-
-## ✨ Features
-
-- 🗓️ Multi-day **agenda list**, grouped by day headers  
-- 🧭 Configurable **date range** (`startOffsetDays`, `numDays`)  
-- 🎨 **iOS liquid-glass** UI with blur, shimmer, and 3D hover  
-- 🧩 **Color-coded contextual icons** for events  
-- 🕓 **Smart full-day detection** (handles 04:00–04:00 or 12:00–12:00 timezone offsets)  
-- 🪄 Optional **descriptions** and **title truncation**  
-- 🔤 Inline **text filtering** to remove unwanted prefixes (“Private:”, “Busy”, etc.)  
-- 🚫 **Duplicate suppression** (based on title + time hash)  
-- ⚙️ Compatible with either the **MagicMirror calendar module** or direct `.ics` feeds  
-- Accepts events from MagicMirror core `calendar` module (`CALENDAR_EVENTS`) or fetches `.ics` feeds directly via node helper.
-- Color coding per calendar (via `calendarColors` or ICS `color`).
-- Custom icons per calendar or per event (`iconMapping`, or event `icon` property).
-- Mini-month overview plus per-day agenda.
-- Liquid glass frosted UI theme, responsive.
-- Event transformer hook for custom logic.
--Uses ical to parse .ics feeds robustly (including RRULEs, EXDATEs, and timezone handling).
--Expands recurring events within a rolling 3-month window (1 month before, 2 months after today).
--Skips duplicates and exceptions.
--Logs cleanly to MagicMirror’s console.
--Sends notifications to the front-end for rendering.
 
 ---
 
-## 🧱 Installation
+## Features
 
-```
-bash
+- Multi-day agenda list, grouped by day headers.
+- Configurable date range (`startOffsetDays`, `numDays`).
+- Liquid-glass UI with blur, shimmer, and hover effects, matching
+  MMM-AmbientWeather's visual language.
+- Color-coded, keyword-based icons for events (`iconMapping` / `iconEmojis`
+  plus `keywordColors`), and per-calendar coloring (`calendarColors`).
+- Full-day detection for all-day or near-24h events.
+- Optional event descriptions and title truncation.
+- Text filtering: strip fragments from titles (`filterText`) and hide whole
+  events by title fragment (`excludeText`).
+- Duplicate suppression across overlapping feeds.
+- Works with either the MagicMirror core `calendar` module
+  (`useCalendarModule: true`) or direct `.ics` URLs fetched by the included
+  node_helper.
+- Recurring events are expanded with RRULE, honoring EXDATE (cancelled
+  instances) and RECURRENCE-ID (moved/edited instances).
+- A failed or unreachable feed shows a visible error/warning instead of
+  silently looking like an empty calendar.
+
+---
+
+## Installation
+
+```bash
 cd ~/MagicMirror/modules
-git clone https://github.com/yourusername/MMM-MyAgenda.git
+git clone https://github.com/hearter20176/MMM-MyAgenda.git
 cd MMM-MyAgenda
 npm install
 ```
 
 ---
- 
+
 ## Example Config
 
 ```js
@@ -62,21 +59,7 @@ npm install
   position: "top_right",
   header: "Agenda",
   config: {
-    wrapEventTitles: true,
-maxTitleLength: 50,
-calendarColors: {
-  "Work": "#FF5733",
-  "Personal": "#33C1FF"
-},
-iconMapping: {
-  "Meeting": "fa-handshake",
-  "Birthday": "fa-birthday-cake"
-},
-keywordColors: {
-  "Urgent": "#FF0000",
-  "Optional": "#AAAAAA"
-}
-useCalendarModule: false,        // false = fetch from .ics URLs, true = use CALENDAR_EVENTS
+    useCalendarModule: false, // false = fetch from .ics URLs, true = use CALENDAR_EVENTS
     calendars: [
       {
         name: "Personal",
@@ -89,222 +72,142 @@ useCalendarModule: false,        // false = fetch from .ics URLs, true = use CAL
     ],
 
     // Display range
-    startOffsetDays: 0,              // days from today (e.g. -1 = include yesterday)
-    numDays: 7,                      // how many days to display
+    startOffsetDays: 0, // days from today (e.g. -1 = include yesterday)
+    numDays: 7, // how many days to display, inclusive of the start day
 
     // Appearance
-    maxTitleLength: 30,              // truncate long titles, 0 = unlimited
-    showDescription: true,           // show event description below title
-    maxDescriptionLength: 80,        // truncate long descriptions
+    maxWidth: 420,
+    maxEvents: 12,
+    maxTitleLength: 30, // truncate long titles, 0 = unlimited
+    wrapEventTitles: true,
+    showDescription: true,
+    maxDescriptionLength: 80,
 
-    // Text filtering (remove unwanted words, case-insensitive)
-    filterText: ["Private:", "(Busy)", "[Tentative]"],
+    // Text filtering (case-insensitive)
+    filterText: ["Private:", "(Busy)", "[Tentative]"], // stripped from displayed titles
+    excludeText: [], // events containing any of these fragments are hidden entirely
 
-    // Refresh rate
-    interval: 30 * 60 * 1000,        // every 30 minutes
+    // Mapping + colors
+    calendarColors: {
+      Work: "#FF5733",
+      Personal: "#33C1FF"
+    },
+    iconMapping: {
+      Meeting: "fa-solid fa-handshake-simple",
+      Birthday: "fa-solid fa-cake-candles"
+    },
+    iconEmojis: {},
+    keywordColors: {
+      Urgent: "#FF0000",
+      Optional: "#AAAAAA"
+    },
+
+    removeDuplicates: true,
+
+    // Refresh rate (only used when fetching .ics feeds directly)
+    interval: 30 * 60 * 1000, // every 30 minutes
+
+    debug: false
   }
 }
 ```
 
 ---
 
-## 🧭 Validation & Testing
+## Options
 
-To test:
-
-Run ```npm install``` in your module directory.
-
-Start MagicMirror and watch logs via:
-
-```npm start dev```
-
-You should see lines like:
-
-``[MMM-MyAgenda Helper] Registered calendar: Family, update every 30 min
-[MMM-MyAgenda Helper] Registered calendar: Homework, update every 30 min```
-
-
-Events with recurrence (RRULE) should now properly appear for each occurrence within the visible date window.
-
----
-
-## 🎨 Visual Design
-
-```MMM-MyAgenda``` inherits its design language from ```MMM-AmbientWeather```, using a liquid-glass effect with shimmer and raised edges.
-
-Each event shows:
-
-A colored icon based on its title keyword (e.g. “🎂” for birthdays, “📞” for meetings)
-
-A clean title (filtered and optionally truncated)
-
-A subtle description line in gray italics
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `header` | string | `"Agenda"` | Card header text. Overridden by the module's own `header` config property if set. |
+| `useCalendarModule` | boolean | `false` | `true` to source events from the core `calendar` module's `CALENDAR_EVENTS` broadcast instead of fetching `.ics` feeds directly. |
+| `calendars` | array | `[]` | Only used when `useCalendarModule` is `false`. Array of `{ name, url }` ICS sources. |
+| `startOffsetDays` | number | `0` | Days from today the display window starts. Negative includes past days. |
+| `numDays` | number | `5` | Number of days shown, inclusive of the start day. |
+| `startDayIndex` | number | — | Legacy alias for `startOffsetDays`. |
+| `endDayIndex` | number | — | Legacy alias; combined with `startDayIndex`/`startOffsetDays` to derive `numDays`. |
+| `maxWidth` | number | `420` | Card max width in px. Lower it when two agendas share a row. |
+| `maxEvents` | number | `12` | Cap on displayed events, with a "+N more" line for the rest. `0` = unlimited, letting the display window decide how many events there are. Either way, after rendering the module also trims any trailing rows that still don't fit the card's height and rolls those into the same "+N more" count, so the list never silently clips. |
+| `maxTitleLength` | number | `0` | Truncate event titles past this many characters. `0` = unlimited. |
+| `wrapEventTitles` | boolean | `true` | Wrap long titles instead of a single line. |
+| `showDescription` | boolean | `false` | Show the event description under the title. |
+| `maxDescriptionLength` | number | `80` | Truncate descriptions past this many characters. `0` = unlimited. |
+| `filterText` | array/string | `[]` | Fragments stripped from displayed titles (case-insensitive). Does not hide events. |
+| `excludeText` | array/string | `[]` | Events whose title contains any of these fragments are hidden entirely (case-insensitive). |
+| `keywordColors` | object | `{}` | Map of title keyword -> color, highest priority color source. |
+| `calendarColors` | object | `{}` | Map of calendar/source name -> color. |
+| `iconMapping` | object | `{}` | Map of title keyword -> Font Awesome class string (e.g. `"fa-solid fa-dna"`). |
+| `iconEmojis` | object | `{}` | Map of title keyword -> emoji/character icon, used if no `iconMapping` match. |
+| `removeDuplicates` | boolean | `true` | Drop events with an identical title + start + end across sources. |
+| `interval` | number | `5 * 60 * 1000` | Only used when fetching `.ics` feeds directly: refresh interval in ms. |
+| `debug` | boolean | `false` | Log per-source event counts: to the browser console from the front end, and to the MagicMirror server log from node_helper (both gated on this flag; node_helper otherwise stays silent on success and only logs failures). |
 
 ---
 
-## Keyword → Icon / Color Map
+## Error and status handling
 
-| Keyword               | Icon | Color     |
-| --------------------- | ---- | --------- |
-| birthday, anniversary | 🎂   | `#f472b6` |
-| meeting, call, zoom   | 📞   | `#3b82f6` |
-| doctor, dentist       | 🏥   | `#60a5fa` |
-| math, exam, test      | 🧮   | `#a78bfa` |
-| soccer, game, sport   | ⚽    | `#22c55e` |
-| travel, flight        | ✈️   | `#f59e0b` |
-| default               | 🗓️  | `#9ca3af` |
-
----
-
-## 🧩 Example
-
-📅 Example Display
-
-```vbnet
- ┌────────────────────────────┐
- │      My Agenda             │
- │────────────────────────────│
- │ Wed, Nov 12                │
- │ 🎂  Mom’s Birthday          │
- │ 🏥  Dentist Appointment     │ 10:00–11:00 AM
- │ ✈️  Travel to Chicago       │
- │────────────────────────────│
- │ Thu, Nov 13                │
- │ 📞  Zoom Project Meeting    │ 2:00–3:00 PM
- └────────────────────────────┘
-```
-(Times omitted for full-day events.)
+- If every configured source fails and there are no events to show at all,
+  the card shows "Calendar unavailable: `<name>` (`<reason>`)" instead of
+  silently looking empty.
+- If some events are available but a source failed, a small warning line
+  ("Some calendars failed to update") is shown above the list.
+- If a source's fetch failed but a cached copy (up to 7 days old) was used
+  instead, a warning line shows how old that cached data is.
+- If `calendars` is empty and `useCalendarModule` is `false`, the card shows
+  "No calendars configured" instead of "No upcoming events".
+- If `useCalendarModule` is `true` and no `CALENDAR_EVENTS` notification
+  arrives within 60 seconds, the card shows a waiting message instead of
+  spinning forever.
 
 ---
 
-## 🧰 Advanced Notes
+## Data Sources
 
-### Data Sources
+- Core MagicMirror `calendar` module's broadcast (`useCalendarModule: true`).
+- Direct `.ics` URLs (`useCalendarModule: false`) via the included
+  node_helper, which uses `node-ical` for RRULE/EXDATE/RECURRENCE-ID-aware
+  recurrence handling.
 
-You can use:
-
-The core MagicMirror ```calendar``` module’s broadcast (```useCalendarModule: true```)
-
-Direct ```.ics``` URLs (```useCalendarModule: false```) via the included Node helper, which uses ```ical``` for robust recurrence handling.
-
-### Duplicate Removal
-
-Events are deduplicated based on:
-
-```js
-(title + startDate + endDate).toLowerCase()
-```
-This prevents repeated entries from overlapping feeds or recurring expansions.
-
-### Title Filtering
-
-The ```filterText``` option strips phrases from titles, not events:
-```js
-"Private: John's Birthday" → "John's Birthday"
-```
-
-### Width
-
-```maxWidth``` (default `420`) caps the card width in pixels. Lower it when two agendas share a
-row, e.g. `maxWidth: 320` for `top_center` + `top_right` on a 1080px-wide portrait display.
-
-### Event Filtering
-
-The ```excludeText``` option hides whole events whose title contains any of the
-listed fragments (case-insensitive). Useful when one feed covers several people, such
-as a Canvas guardian feed shared by two children:
-```js
-// Panel for the 6th grader: hide the 8th grader's courses
-excludeText: ["[08 ", "[Pre-Algebra", "[Spanish"],
-filterText: ["[06 English]", "[06 Math-Hauser]"]  // then strip course tags from titles
-```
-
-### Fetching Notes
-
-ICS feeds are fetched with a `User-Agent` header (Canvas/Instructure rejects requests
-without one with HTTP 403), `webcal://` URLs are converted to `https://`, redirects are
-followed, and each fetch logs `<calendar>: N events` or `fetch failed: <reason>` to the
-MagicMirror log.
+ICS feeds are fetched with a `User-Agent` header (some providers, e.g.
+Canvas/Instructure, reject requests without one with HTTP 403),
+`webcal://` URLs are converted to `https://`, and redirects are followed.
 
 ---
 
-## 🎨 Styling
+## Styling
 
-If you want to adjust the visual theme, edit:
-```
-MMM-MyAgenda.css
-```
+Edit `MMM-MyAgenda.css` to adjust the visual theme. Selectors specific to
+this module's card styling (`.glass-card`, `.raised-edge`, and their
+keyframes) are scoped under `.MMM-MyAgenda` so they don't affect other
+modules that use a similar glass-card look.
 
 ---
 
-## 🧑‍💻 Author & License
+## Testing
+
+```bash
+npm test
+```
+
+Runs the `node --test` suite in `test/`, covering RRULE/EXDATE/RECURRENCE-ID
+expansion, per-source error/warning status, and fetch-timer reuse. All
+fixtures are synthetic; no real calendar data is used in tests.
+
+---
+
+## Dependencies
+
+- [`node-ical`](https://www.npmjs.com/package/node-ical) — ICS parsing and
+  recurrence expansion.
+- [`boxicons`](https://www.npmjs.com/package/boxicons) and
+  [`iconoir`](https://www.npmjs.com/package/iconoir) — optional icon fonts
+  for `iconMapping`.
+
+Install with `npm install` from the module directory.
+
+---
+
+## Author & License
 
 Author: Harry Arter & ChatGPT (GPT-5)
 License: MIT
-Version: 1.3.0
-
----
-
-## 📦 Dependencies
-
-ical
- ^0.9.0
-
-node-fetch
- ^3.3.2
-
-Install automatically with:
-
-```bash
-npm install
-```
-
----
-
-## 💡 Tips
-
-Combine with MMM-AmbientWeather for a cohesive dashboard aesthetic.
-
-Use maxTitleLength to prevent text wrapping in narrow regions.
-
-For 24-hour clocks, you can change the time format in formatTime() inside the JS file.
-
----
-
-## 🪄 Upcoming Enhancements
-
-Optional mini-month calendar overlay
-
-Support for per-calendar color mapping
-
-Fade-in animation on day transitions
-
----
-
-## 🧩 Example Repository Layout
-
-```go
-
-MMM-MyAgenda/
-├── MMM-MyAgenda.js
-├── MMM-MyAgenda.css
-├── node_helper.js
-├── package.json
-├── README.md
-└── docs/
-    ├── preview_day.png
-    └── preview_night.png
-```
----
-
-Enjoy your new MagicMirror Liquid-Glass Agenda! 🪞💎
-
-## ✅ Summary of Upgrade
-
-| Feature                      | Before               | Now                   |
-| ---------------------------- | -------------------- | --------------------- |
-| ICS parsing                  | manual string parser | robust `ical` library |
-| Recurrence support           | ❌ none               | ✅ full RRULE, EXDATE  |
-| Configurable fetch intervals | ✅                    | ✅                     |
-| Timezone handling            | partial              | ✅ (ical built-in)     |
-| Reliability                  | good                 | **production-grade**  |
+Version: 1.1.0
