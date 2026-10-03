@@ -7,13 +7,12 @@ from the core `calendar` module's `CALENDAR_EVENTS` broadcast, or fetch
 [node-ical](https://www.npmjs.com/package/node-ical) for parsing, including
 RRULE recurrence, EXDATE exceptions, and RECURRENCE-ID overrides).
 
-### Day
+<p align="center">
+  <img src="docs/screenshot.png" width="338" alt="Agenda card in the night theme"/>
+</p>
 
-![MMM-MyAgenda Light Theme](docs/myagenda_day.png)
-
-### Night
-
-![MMM-MyAgenda Dark Theme](docs/myagenda_night.png)
+*The agenda card in the night theme with sample events: all-day and timed events grouped by day,
+and a "+N more" line when the list is longer than the card.*
 
 ---
 
