@@ -50,6 +50,16 @@ npm install
 
 ---
 
+## Update
+
+```bash
+cd ~/MagicMirror/modules/MMM-MyAgenda
+git pull
+npm install --omit=dev
+```
+
+Then restart MagicMirror (for example `pm2 restart MagicMirror`).
+
 ## Example Config
 
 ```js
@@ -108,7 +118,7 @@ npm install
 
     debug: false
   }
-}
+},
 ```
 
 ---

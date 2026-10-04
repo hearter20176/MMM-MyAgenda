@@ -3,10 +3,10 @@
  * (honouring EXDATE and RECURRENCE-ID), and sends results to the front end.
  */
 
-const crypto = require("crypto");
-const fs = require("fs");
-const https = require("https");
-const path = require("path");
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const https = require("node:https");
+const path = require("node:path");
 const Log = require("logger");
 const ical = require("node-ical");
 const NodeHelper = require("node_helper");
