@@ -26,7 +26,7 @@
   "license": "MIT",
   "dependencies": {
     "boxicons": "^2.1.4",
-    "iconoir": "^7.11.0",
+    "iconoir": "^7.12.1",
     "node-ical": "^0.21.0"
   },
   "devDependencies": {
