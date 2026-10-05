@@ -60,7 +60,7 @@ npm install --omit=dev
 
 Then restart MagicMirror (for example `pm2 restart MagicMirror`).
 
-## Example Config
+## Configuration
 
 ```js
 {

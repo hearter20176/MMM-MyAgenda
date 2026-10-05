@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint (flat config) with an `npm run lint` script.
 - Added CHANGELOG, CODE_OF_CONDUCT and a Dependabot configuration.
 
+### Changed
+
+- ESLint 10, with `defineConfig` in `eslint.config.mjs`; `npm run lint` runs `eslint` without the trailing `.`.
+- Updated `node-ical` to 0.27 and `iconoir` to 7.12.
+- README: the config example is under a `## Configuration` heading.
+
 ## [1.1.0]
 
 Released before this changelog was started. Commit history, newest first:
