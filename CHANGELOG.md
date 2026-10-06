@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint 10, with `defineConfig` in `eslint.config.mjs`; `npm run lint` runs `eslint` without the trailing `.`.
 - Updated `node-ical` to 0.27 and `iconoir` to 7.12.
 - README: the config example is under a `## Configuration` heading.
+- `package.json`: lowercase package name, `"type": "commonjs"` and a valid `author`.
+- ESLint reports unused catch bindings and arguments, and lints `package.json`, as modules.magicmirror.builders does.
 
 ## [1.1.0]
 

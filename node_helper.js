@@ -137,7 +137,7 @@ module.exports = NodeHelper.create({
           `using cached copy from ${Math.round(ageMs / 60000)} min ago`);
         return { text: fs.readFileSync(file, "utf8"), stale: true, cachedAgeMs: ageMs };
       }
-    } catch (err) {
+    } catch {
       // no usable cache
     }
     throw lastErr;

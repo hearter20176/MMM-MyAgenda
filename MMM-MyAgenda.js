@@ -418,7 +418,7 @@ Module.register("MMM-MyAgenda", {
             const esc = this._escapeRegExp(frag);
             const rx = new RegExp(esc, "gi");
             displayedTitle = displayedTitle.replace(rx, "");
-          } catch (err) {
+          } catch {
             displayedTitle = displayedTitle.split(frag).join("");
           }
         });
