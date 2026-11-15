@@ -28,7 +28,7 @@
   "dependencies": {
     "boxicons": "^2.1.4",
     "iconoir": "^7.12.1",
-    "node-ical": "^0.27.3"
+    "node-ical": "^0.27.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
